@@ -1,3 +1,28 @@
+/*
+public Matrix(int rows, int cols)
+public Matrix(double[][] val)
+
+public int getRowsCount()
+public int getColsCount()
+
+public double getElmt(int i, int j)
+public double[] getRow(int r)
+public double[] getCol(int c)
+
+public void setElmt(int i, int j, double val)
+public void setRow(int r, double[] values)
+public void setCol(int c, double[] values)
+
+public void displayMatrix()
+public Matrix copyMatrix()
+public void swapRow(int i, int j)
+
+public boolean isSquare()
+
+public Matrix transpose()
+public static Matrix identity(int dimension)
+ */
+
 package algeo.modules;
 
 import java.util.Arrays;
@@ -103,6 +128,37 @@ public class Matrix {
         double[] temp = data[i];
         data[i] = data[j];
         data[j] = temp;
+    }
+
+    /*
+     * return true if it's a square matrix
+     */
+    public boolean isSquare() {
+        return this.rows == this.cols;
+    }
+
+    /*
+     * return transpose of a matrix
+     */
+    public Matrix transpose() {
+        Matrix transposed = new Matrix(this.cols, this.rows);
+        for (int i = 0; i < this.cols; i++) {
+            for (int j = 0; j < this.rows; j++) {
+                transposed.setElmt(i, j, this.getElmt(j,i));
+            }
+        }
+        return transposed;
+    }
+
+    /*
+     * return dimension * dimension identity matrix
+     */
+    public static Matrix identity(int dimension) {
+        Matrix identityMatrix = new Matrix(dimension, dimension);
+        for (int i = 0; i < dimension; i++) {
+            identityMatrix.setElmt(i, i, 1);
+        }
+        return identityMatrix;
     }
 
 }
