@@ -108,7 +108,7 @@ public class Matrix {
     public void displayMatrix() {
         for (int i = 0; i < this.rows; i++) {
             for (int j = 0; j < this.cols; j++) {
-                System.out.printf("%8.2f", this.data[i][j]);
+                System.out.printf("%8.3f", this.data[i][j]);
                 if (j != this.cols - 1) {
                     System.out.print(" ");
                 }
