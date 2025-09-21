@@ -15,7 +15,10 @@ public void setCol(int c, double[] values)
 
 public void displayMatrix()
 public Matrix copyMatrix()
+
 public void swapRow(int i, int j)
+public void scaleRow(int row, double constant)
+public void replaceRow(int rowReplaced, int rowHelper, double constant)
 
 public boolean isSquare()
 
@@ -124,10 +127,37 @@ public class Matrix {
         return new Matrix(data);
     }
 
+    /*
+     * swap the i row with j row
+     */
     public void swapRow(int i, int j) {
         double[] temp = data[i];
         data[i] = data[j];
         data[j] = temp;
+    }
+
+    /*
+     * scale the specified row with a non 0 constant
+     */
+    public void scaleRow(int row, double constant) {
+        if (constant == 0) {
+            throw new IllegalArgumentException("Constant must be not 0");
+        }
+        for (int i = 0; i < this.cols; i++) {
+            this.data[row][i] *= constant;
+        }
+    }
+
+    /*
+     *
+     */
+    public void replaceRow(int rowReplaced, int rowHelper, double constant) {
+        if (constant == 0) {
+            throw new IllegalArgumentException("Constant must be not 0");
+        }
+        for (int i = 0; i < this.cols; i++) {
+            this.data[rowReplaced][i] += constant * this.data[rowHelper][i];
+        }
     }
 
     /*
