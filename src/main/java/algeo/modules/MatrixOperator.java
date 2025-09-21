@@ -59,17 +59,12 @@ public class MatrixOperator {
         int resultRowLength = a.getRowsCount();
         int resultColLength = b.getColsCount();
         int aColLength = a.getColsCount();
-        if (aColLength != b.getRowsCount()) {
-            throw new IllegalArgumentException("a's column must be equal to b's row");
-        }
         Matrix result = new Matrix(resultRowLength, resultColLength);
         for (int i = 0; i < resultRowLength; i++) {
             for (int j = 0; j < resultColLength; j++) {
-                double sum = 0;
                 for (int k = 0; k < aColLength; k++) {
-                    sum += a.getElmt(i, k) * b.getElmt(k, j);
+                    result.setElmt(i, j, a.getElmt(i, k) * b.getElmt(k, j));
                 }
-                result.setElmt(i, j, sum);
             }
         }
         return result;
