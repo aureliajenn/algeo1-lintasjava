@@ -18,7 +18,7 @@ public Matrix copyMatrix()
 
 public void swapRow(int i, int j)
 public void scaleRow(int row, double constant)
-public void replaceRow(int rowReplaced, int rowHelper, double constant)
+public void addRowMultiple(int targetRow, int rowHelper, double constant)
 
 public boolean isSquare()
 
@@ -150,15 +150,34 @@ public class Matrix {
     }
 
     /*
-     *
+     * return the result of elementary row operation on the matrix :
+     * targetRow = targetRow + (constant * rowHelper)
      */
-    public void replaceRow(int rowReplaced, int rowHelper, double constant) {
+    public void addRowMultiple(int targetRow, int rowHelper, double constant) {
         if (constant == 0) {
             throw new IllegalArgumentException("Constant must be not 0");
         }
         for (int i = 0; i < this.cols; i++) {
-            this.data[rowReplaced][i] += constant * this.data[rowHelper][i];
+            this.data[targetRow][i] += constant * this.data[rowHelper][i];
         }
+    }
+
+    /*
+     * replace all element in the specified column with values from a 1-column matrix
+     */
+    public Matrix replaceCol(int targetCol, Matrix newValue) {
+        if (this.rows != newValue.getRowsCount()) {
+            throw new IllegalArgumentException("Both matrix must have equal row length");
+        } else if (newValue.getColsCount() != 1) {
+            throw new IllegalArgumentException("newValue matrix must be 1D-row matrix");
+        }
+
+        Matrix result = new Matrix(this.data);
+
+        for (int i = 0; i < this.rows; i++) {
+            result.setElmt(i, targetCol, newValue.getElmt(i, 0));
+        }
+        return result;
     }
 
     /*
@@ -209,7 +228,7 @@ public class Matrix {
                 } else if (i > row && j < col){
                     removedRowColMatrix.setElmt(i-1,j, this.data[i][j]);
                 } else if (i > row && j > col){
-                    removedRowColMatrix[i-1,j-1, this.data[i][j]);
+                    removedRowColMatrix.setElmt(i-1,j-1, this.data[i][j]);
                 }
             }
         }

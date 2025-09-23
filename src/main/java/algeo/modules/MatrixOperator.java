@@ -3,6 +3,7 @@ public static Matrix addition(Matrix a, Matrix b)
 public static Matrix subtraction(Matrix a, Matrix b)
 public static Matrix scalarMultiplication(Matrix a, double scalar)
 public static Matrix matrixMultiplication(Matrix a, Matrix b)
+public static Matrix scalarDivision(Matrix a, double scalar)
 public static double detCofactor(Matrix a)
 public static Matrix cofactorMatrix(Matrix a)
 */
@@ -55,6 +56,24 @@ public class MatrixOperator {
     }
 
     /*
+     * return a matrix result of a scalar divided a matrix
+     */
+    public static Matrix scalarDivision(Matrix a, double scalar) {
+        if (scalar == 0) {
+            throw new IllegalArgumentException("scalar must not be 0");
+        }
+        int rowLength = a.getRowsCount();
+        int colLength = a.getColsCount();
+        Matrix result = new Matrix(rowLength, colLength);
+        for (int i = 0; i < rowLength; i++) {
+            for (int j = 0; j < colLength; j++) {
+                result.setElmt(i, j, a.getElmt(i, j)/scalar);
+            }
+        }
+        return result;
+    }
+
+    /*
      * return a matrix result from a * b
      */
     public static Matrix matrixMultiplication(Matrix a, Matrix b) {
@@ -98,9 +117,8 @@ public class MatrixOperator {
                 double cofactor = Math.pow(-1, j) * a.getElmt(0,j) * detCofactor(r);
                 det += cofactor;
             }
+            return det;
         }
-
-        return det;
     }
     /*
      * membentuk matriks kofaktor dari matriks a
@@ -111,8 +129,8 @@ public class MatrixOperator {
         }
         int n = a.getRowsCount();
         Matrix result = new Matrix(n,n);
-        for (int i = 0; i < a.getRow();i++){
-            for (int j = 0; j < a.getCol(); j++){
+        for (int i = 0; i < a.getRowsCount();i++){
+            for (int j = 0; j < a.getColsCount(); j++){
                 Matrix r = a.removeRowColMatrix(i,j);
                 double cofactor = Math.pow(-1 , (i + j)) * detCofactor(r);
                 result.setElmt(i,j,cofactor);
