@@ -24,6 +24,7 @@ public boolean isSquare()
 
 public Matrix transpose()
 public static Matrix identity(int dimension)
+public Matrix removeRowColMatrix(int row, int col)
  */
 
 package algeo.modules;
@@ -191,4 +192,27 @@ public class Matrix {
         return identityMatrix;
     }
 
+    public Matrix removeRowColMatrix(int row, int col) {
+        if (row < 0 || row >= this.rows || col < 0 || col >= this.cols) {
+            throw new IllegalArgumentException("Index baris dan/atau kolom salah.");
+        }
+
+        Matrix removedRowColMatrix = new Matrix(this.rows-1, this.cols-1);
+        for (int i = 0; i < this.rows; i++) {
+            for (int j = 0; j < this.cols; j++) {
+                if (i == row || j == col){
+                    continue;
+                } else if (i < row && j < col){
+                    removedRowColMatrix.setElmt(i,j,this.data[i][j]);
+                } else if (i < row && j > col){
+                    removedRowColMatrix.setElmt(i,j-1, this.data[i][j]);
+                } else if (i > row && j < col){
+                    removedRowColMatrix.setElmt(i-1,j, this.data[i][j]);
+                } else if (i > row && j > col){
+                    removedRowColMatrix[i-1,j-1, this.data[i][j]);
+                }
+            }
+        }
+        return removedRowColMatrix;
+    }
 }

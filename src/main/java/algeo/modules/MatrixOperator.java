@@ -3,6 +3,8 @@ public static Matrix addition(Matrix a, Matrix b)
 public static Matrix subtraction(Matrix a, Matrix b)
 public static Matrix scalarMultiplication(Matrix a, double scalar)
 public static Matrix matrixMultiplication(Matrix a, Matrix b)
+public static double detCofactor(Matrix a)
+public static Matrix cofactorMatrix(Matrix a)
 */
 package algeo.modules;
 
@@ -75,4 +77,47 @@ public class MatrixOperator {
         return result;
     }
 
+    /*
+     * hitung determinan dari matriks a dengan metode ekspansi kofaktor
+     */
+    public static double detCofactor(Matrix a) {
+
+        if (!a.isSquare()) {
+            throw new IllegalStateException("Determinan hanya bisa dihitung dari matriks persegi.");
+        }
+        int n = a.getRowsCount();
+
+        if (n == 1) {
+            return a.getElmt(0,0);
+        } else if (n == 2) {
+            return a.getElmt(0,0) * a.getElmt(1,1) - a.getElmt(0,1) * a.getElmt(1,0);
+        } else{
+            double det = 0.0;
+            for (int j = 0; j < n; j++) {
+                Matrix r = a.removeRowColMatrix(0, j);
+                double cofactor = Math.pow(-1, j) * a.getElmt(0,j) * detCofactor(r);
+                det += cofactor;
+            }
+        }
+
+        return det;
+    }
+    /*
+     * membentuk matriks kofaktor dari matriks a
+     */
+    public static Matrix cofactorMatrix(Matrix a){
+        if (!a.isSquare()){
+            throw new IllegalStateException("Matriks kofaktor hanya bisa dibentuk dari matriks persegi");
+        }
+        int n = a.getRowsCount();
+        Matrix result = new Matrix(n,n);
+        for (int i = 0; i < a.getRow();i++){
+            for (int j = 0; j < a.getCol(); j++){
+                Matrix r = a.removeRowColMatrix(i,j);
+                double cofactor = Math.pow(-1 , (i + j)) * detCofactor(r);
+                result.setElmt(i,j,cofactor);
+            }
+        }
+        return result;
+    }
 }
