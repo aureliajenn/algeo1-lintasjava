@@ -211,6 +211,9 @@ public class Matrix {
         return identityMatrix;
     }
 
+    /*
+     * return matrix with removed row and col
+     */
     public Matrix removeRowColMatrix(int row, int col) {
         if (row < 0 || row >= this.rows || col < 0 || col >= this.cols) {
             throw new IllegalArgumentException("Index baris dan/atau kolom salah.");
