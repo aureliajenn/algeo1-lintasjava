@@ -110,14 +110,14 @@ public class Matrix {
 
     // utility
     public void displayMatrix() {
-        for (int i = 0; i < this.rows; i++) {
-            for (int j = 0; j < this.cols; j++) {
-                System.out.printf("%8.3f", this.data[i][j]);
-                if (j != this.cols - 1) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                System.out.printf("%8.3f", data[i][j]);
+                if (j != cols - 1) {
                     System.out.print(" ");
                 }
             }
-            if (i != this.rows - 1) {
+            if (i != rows - 1) {
                 System.out.println();
             }
         }
@@ -128,81 +128,64 @@ public class Matrix {
         return new Matrix(data);
     }
 
-    /*
-     * swap the i row with j row
-     */
     public void swapRow(int i, int j) {
         double[] temp = data[i];
         data[i] = data[j];
         data[j] = temp;
     }
 
-    /*
-     * scale the specified row with a non 0 constant
-     */
-    public void scaleRow(int row, double constant) {
+    // scale the specified row with a non 0 constant
+    public void scaleRow(int row, double constant) { 
         if (constant == 0) {
-            throw new IllegalArgumentException("Constant must be not 0");
+            throw new IllegalArgumentException("Konstan tidak boleh nol");
         }
-        for (int i = 0; i < this.cols; i++) {
-            this.data[row][i] *= constant;
+        for (int i = 0; i < cols; i++) {
+            data[row][i] *= constant;
         }
     }
 
-    /*
-     * return the result of elementary row operation on the matrix :
-     * targetRow = targetRow + (constant * rowHelper)
-     */
+    // return targetRow = targetRow + (constant * rowHelper)
     public void addRowMultiple(int targetRow, int rowHelper, double constant) {
         if (constant == 0) {
-            throw new IllegalArgumentException("Constant must be not 0");
+            throw new IllegalArgumentException("Konstan tidak boleh nol");
         }
-        for (int i = 0; i < this.cols; i++) {
-            this.data[targetRow][i] += constant * this.data[rowHelper][i];
+        for (int i = 0; i < cols; i++) {
+            data[targetRow][i] += constant * data[rowHelper][i];
         }
     }
 
-    /*
-     * replace all element in the specified column with values from a 1-column matrix
-     */
+    
+    // replace all element in the specified column with values from a 1-column matrix
     public Matrix replaceCol(int targetCol, Matrix newValue) {
-        if (this.rows != newValue.getRowsCount()) {
+        if (rows != newValue.getRowsCount()) {
             throw new IllegalArgumentException("Both matrix must have equal row length");
         } else if (newValue.getColsCount() != 1) {
             throw new IllegalArgumentException("newValue matrix must be 1D-row matrix");
         }
 
-        Matrix result = new Matrix(this.data);
+        Matrix result = new Matrix(data);
 
-        for (int i = 0; i < this.rows; i++) {
+        for (int i = 0; i < rows; i++) {
             result.setElmt(i, targetCol, newValue.getElmt(i, 0));
         }
         return result;
     }
 
-    /*
-     * return true if it's a square matrix
-     */
     public boolean isSquare() {
-        return this.rows == this.cols;
+        return rows == cols;
     }
 
-    /*
-     * return transpose of a matrix
-     */
     public Matrix transpose() {
-        Matrix transposed = new Matrix(this.cols, this.rows);
-        for (int i = 0; i < this.cols; i++) {
-            for (int j = 0; j < this.rows; j++) {
-                transposed.setElmt(i, j, this.getElmt(j,i));
+        Matrix transposed = new Matrix(cols, rows);
+        for (int i = 0; i < cols; i++) {
+            for (int j = 0; j < rows; j++) {
+                transposed.setElmt(i, j, getElmt(j,i));
             }
         }
         return transposed;
     }
 
-    /*
-     * return dimension * dimension identity matrix
-     */
+    // return matrix identitas
     public static Matrix identity(int dimension) {
         Matrix identityMatrix = new Matrix(dimension, dimension);
         for (int i = 0; i < dimension; i++) {
@@ -211,30 +194,38 @@ public class Matrix {
         return identityMatrix;
     }
 
-    /*
-     * return matrix with removed row and col
-     */
     public Matrix removeRowColMatrix(int row, int col) {
-        if (row < 0 || row >= this.rows || col < 0 || col >= this.cols) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
             throw new IllegalArgumentException("Index baris dan/atau kolom salah.");
         }
 
-        Matrix removedRowColMatrix = new Matrix(this.rows-1, this.cols-1);
-        for (int i = 0; i < this.rows; i++) {
-            for (int j = 0; j < this.cols; j++) {
+        Matrix removedRowColMatrix = new Matrix(rows-1, cols-1);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
                 if (i == row || j == col){
                     continue;
                 } else if (i < row && j < col){
-                    removedRowColMatrix.setElmt(i,j,this.data[i][j]);
+                    removedRowColMatrix.setElmt(i,j,data[i][j]);
                 } else if (i < row && j > col){
-                    removedRowColMatrix.setElmt(i,j-1, this.data[i][j]);
+                    removedRowColMatrix.setElmt(i,j-1, data[i][j]);
                 } else if (i > row && j < col){
-                    removedRowColMatrix.setElmt(i-1,j, this.data[i][j]);
+                    removedRowColMatrix.setElmt(i-1,j, data[i][j]);
                 } else if (i > row && j > col){
-                    removedRowColMatrix.setElmt(i-1,j-1, this.data[i][j]);
+                    removedRowColMatrix.setElmt(i-1,j-1, data[i][j]);
                 }
             }
         }
         return removedRowColMatrix;
     }
+
+    public Matrix removeLastCol() {
+        Matrix result = new Matrix(rows, cols - 1);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols - 1; j++) {
+                result.setElmt(i, j, data[i][j]);
+            }
+        }
+        return result;
+    }
+
 }

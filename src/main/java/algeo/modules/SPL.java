@@ -12,6 +12,47 @@ public class SPL {
 
     /*
      * return solutions of a linear equation system
+     * with Gauss elimination method
+     */
+    public static Matrix gauss(Matrix augmented) {
+        Matrix m = augmented.copyMatrix();
+
+        int rowCount = m.getRowsCount();
+        int colCount = m.getColsCount();
+        int pivotRow = 0;
+
+        for (int pivotCol = 0; pivotCol < colCount - 1 && pivotRow < rowCount; pivotCol++) {
+            int nonZero = pivotRow;
+            while (nonZero < rowCount && m.getElmt(nonZero, pivotCol) == 0) {
+                nonZero++;  // cek bawah
+            }
+            if (nonZero == rowCount) {
+                continue;
+            }
+
+            if (nonZero != pivotRow) {
+                m.swapRow(pivotRow, nonZero);
+            }
+
+            double pivotVal = m.getElmt(pivotRow, pivotCol);
+            if (pivotVal != 1 && pivotVal != 0) {
+                m.scaleRow(pivotRow, 1.0 / pivotVal);
+            }
+
+            m = zeroBelowPivot(m, pivotRow, pivotCol);
+
+            pivotRow++;
+        }
+
+        Matrix A = m.removeLastCol();  // [A | b]
+        double[] b = m.getCol(colCount - 1);
+
+        return backSubstitute(A, b);
+    }
+
+
+    /*
+     * return solutions of a linear equation system
      * with Gauss-Jordan elimination method
      */
     public static Matrix gaussJordan(Matrix augmented){
