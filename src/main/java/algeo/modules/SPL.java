@@ -145,7 +145,7 @@ public class SPL {
      *  [ 2 3  0] -> [0 1  2]
      *  [ 3 5  1]    [0 0  0]
      */
-    private static Matrix reducedEchelonForm(Matrix m){
+    public static Matrix reducedEchelonForm(Matrix m){
         Matrix m1 = m.copyMatrix();
         int rowCount = m1.getRowsCount();
         int colCount = m1.getColsCount();

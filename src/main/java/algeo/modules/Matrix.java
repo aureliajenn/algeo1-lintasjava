@@ -228,4 +228,58 @@ public class Matrix {
         return result;
     }
 
+    // join two matrices horizontally (not necessarily an augmented [A|b] form)
+    public static Matrix augment(Matrix A, Matrix B) {
+        if (A.getRowsCount() != B.getRowsCount()) {
+            throw new IllegalArgumentException("Jumlah baris A dan B harus sama");
+        }
+
+        int rows = A.getRowsCount();
+        int colA = A.getColsCount();
+        int colB = B.getColsCount();
+        int cols = colA + colB;
+        Matrix augmented = new Matrix(rows, cols);
+
+        // copy matrix A
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < colA; j++) {
+                augmented.setElmt(i, j, A.getElmt(i, j));
+            }
+        }
+
+        // copy matrix B
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < colB; j++) {
+                augmented.setElmt(i, j + colA, B.getElmt(i, j));
+            }
+        }
+
+        return augmented;
+    }
+
+    public Matrix inverse() {
+        if (!isSquare()) {
+            throw new IllegalArgumentException("Matriks harus persegi");
+        }
+
+        int n = getRowsCount();
+
+        // buat matriks [A | I]
+        Matrix I = Matrix.identity(n);
+        Matrix augmented = Matrix.augment(copyMatrix(), I);
+
+        Matrix reduced = SPL.reducedEchelonForm(augmented);
+
+        Matrix invers = new Matrix(n, n);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                invers.setElmt(i, j, reduced.getElmt(i, j + n));
+            }
+        }
+
+    return invers;
+}
+
+
+
 }
