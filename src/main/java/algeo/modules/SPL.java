@@ -4,6 +4,12 @@ import algeo.modules.MatrixOperator;
 
 public class SPL {
 
+    /*'********************************************************************'*/
+    /*'                                                                    '*/
+    /*'           way to solve linear equation (main function)             '*/
+    /*'                                                                    '*/
+    /*'********************************************************************'*/
+
     /*
      * return solutions of a linear equation system
      * with Gauss-Jordan elimination method
@@ -38,19 +44,19 @@ public class SPL {
 
         a = m.removeRowColMatrix(0,m.getColsCount()-1);
         b = m.getCol(m.getColsCount()-1);
-        return solve(a,b);
+        return backSubstitute(a,b);
     }
 
     /*
-     * return solutions of a linear equation system
+     * return solutions of a linear equation system using cramer method
      * Ax = b
      *
      */
     public static Matrix cramer(Matrix coeffMatrix, Matrix constMatrix) {
         // calculate the determinant of coeffMatrix
         double coeffMatDet = MatrixOperator.detCofactor(coeffMatrix);
-        if (coeffMatDet != 0) {
-            throw new IllegalArgumentException("Det != 0, cramer's method couldn't be applied");
+        if (coeffMatDet == 0) {
+            throw new IllegalArgumentException("Det == 0, cramer's method couldn't be applied");
         }
 
         // apply cramer's rule
@@ -64,7 +70,13 @@ public class SPL {
         return MatrixOperator.scalarDivision(determinants, coeffMatDet);
     }
 
-    public Matrix zeroBelowPivot(Matrix m, int pivotRow, int pivotCol){
+    /*'***********************************************************************'*/
+    /*'                                                                       '*/
+    /*                               helpers                                   */
+    /*'                                                                       '*/
+    /*'***********************************************************************'*/
+
+    public static Matrix zeroBelowPivot(Matrix m, int pivotRow, int pivotCol){
         Matrix m1 = m.copyMatrix();
         for(int i = pivotRow + 1; i < m1.getRowsCount(); i++){
             double factor = m1.getElmt(i, pivotCol);
@@ -75,7 +87,7 @@ public class SPL {
         return m1;
     }
 
-    public Matrix zeroAbovePivot(Matrix m, int pivotRow, int pivotCol){
+    public static Matrix zeroAbovePivot(Matrix m, int pivotRow, int pivotCol){
         Matrix m1 = m.copyMatrix();
         for(int i = pivotRow - 1; i >= 0; i--){
             double factor = m1.getElmt(i, pivotCol);
@@ -86,7 +98,13 @@ public class SPL {
         return m1;
     }
 
-    public static Matrix reducedEchelonForm(Matrix m){
+    /*
+     * transforms the given matrix into its Reduced Row Echelon Form
+     *  [ 1 2 -1]    [1 0 -3]
+     *  [ 2 3  0] -> [0 1  2]
+     *  [ 3 5  1]    [0 0  0]
+     */
+    private static Matrix reducedEchelonForm(Matrix m){
         Matrix m1 = m.copyMatrix();
         int rowCount = m1.getRowsCount();
         int colCount = m1.getColsCount();
@@ -149,7 +167,7 @@ public class SPL {
     /*
      * return the first index of a non-zero element in a row
      */
-    private int idxNotZero(double[] row) {
+    private static int idxNotZero(double[] row) {
         for (int i = 0; i < row.length; i++) {
             if (row[i] != 0) return i;
         }
@@ -193,25 +211,26 @@ public class SPL {
         return true;
     }
 
-    private Matrix solve(Matrix A, double[] B) {
-        int n = A.getColsCount();
-        Matrix solution = new Matrix(n, n + 1);
+    /*
+     * do the backward substitution to get the result of the linear equation
+     * in gauss method
+     */
 
-        for (int i = 0; i < n; i++) {
-            solution.setElmt(i, n, B[i]);
-        }
+    private static Matrix backSubstitute(Matrix A, double[] B) {
+        int n = A.getColsCount();
+        Matrix solution = new Matrix(n, 1);
 
         for (int i = A.getRowsCount() - 1; i >= 0; i--) {
-            int idx = indexNotZero(A.getRow(i));
+            int idx = idxNotZero(A.getRow(i));
             if (idx == -1) {
-                solution.setElmt(i, i, 1);
                 continue;
             }
+            double sum = 0;
             for (int j = idx + 1; j < n; j++) {
-                if (A.getElmt(i, j) != 0) {
-                    solution.addRowMultiple(idx, j, -1 * A.getElmt(i, j));
-                }
+                sum += A.getElmt(i, j) * solution.getElmt(j, 0);
             }
+            double xi = (B[i] - sum) / A.getElmt(i, idx);
+            solution.setElmt(idx, 0, xi);
         }
         return solution;
     }
