@@ -217,4 +217,15 @@ public class Matrix {
         }
         return removedRowColMatrix;
     }
+
+    public Matrix removeLastCol() {
+        Matrix result = new Matrix(rows, cols - 1);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols - 1; j++) {
+                result.setElmt(i, j, data[i][j]);
+            }
+        }
+        return result;
+    }
+
 }
