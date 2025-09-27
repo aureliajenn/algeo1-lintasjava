@@ -95,7 +95,6 @@ public class MatrixOperator {
         }
         return result;
     }
-
     /*
      * hitung determinan dari matriks a dengan metode ekspansi kofaktor
      */
@@ -137,5 +136,64 @@ public class MatrixOperator {
             }
         }
         return result;
+    }
+
+    /*
+     * hitung determinan dari matriks a dengan metode reduksi baris
+     */
+    public static double detReduksiBaris(Matrix a) {
+
+        if (!a.isSquare()) {
+            throw new IllegalStateException("Determinan hanya bisa dihitung dari matriks persegi.");
+        }
+
+        Matrix m = a.copyMatrix();
+        int n = m.getRowsCount();
+        double determinant = 1.0;
+        int swapCount = 0;
+
+        for (int i = 0; i < n; i++) {
+            int pivotRow = i;
+            while (pivotRow < n && m.getElmt(pivotRow, i) == 0) {
+                pivotRow++;
+            }
+
+            if (pivotRow == n) {
+                return 0;
+            }
+
+            if (pivotRow != i) {
+                m.swapRow(pivotRow, i);
+                swapCount++;
+            }
+            double pivotVal = m.getElmt(i, i);
+            determinant *= pivotVal;
+
+            for (int j = i + 1; j < n; j++) {
+                double factor = m.getElmt(j, i) / pivotVal;
+                m.addRowMultiple(j, i, -factor);
+
+            }
+        }
+        if (swapCount % 2 == 1) {
+            determinant *= -1;
+        }
+        return determinant;
+    }
+
+    /*
+     * invers a dengan metode adjoin
+     */
+    public static Matrix inverseAdjoin(Matrix a) {
+        if (!a.isSquare()) {
+            throw new IllegalArgumentException("Invers tidak terdefinisi");
+        }
+
+        double determinant = detCofactor(a);
+        if (determinant == 0) {
+            throw new IllegalArgumentException("Matrix Singular, Invers tidak terdefinisi");
+        }
+
+        return scalarDivision(cofactorMatrix(a).transpose(), determinant);
     }
 }

@@ -135,7 +135,7 @@ public class Matrix {
     }
 
     // scale the specified row with a non 0 constant
-    public void scaleRow(int row, double constant) { 
+    public void scaleRow(int row, double constant) {
         if (constant == 0) {
             throw new IllegalArgumentException("Konstan tidak boleh nol");
         }
@@ -154,7 +154,7 @@ public class Matrix {
         }
     }
 
-    
+
     // replace all element in the specified column with values from a 1-column matrix
     public Matrix replaceCol(int targetCol, Matrix newValue) {
         if (rows != newValue.getRowsCount()) {
@@ -278,7 +278,7 @@ public class Matrix {
         }
 
     return invers;
-}
+    }
 
 
 
