@@ -59,7 +59,7 @@ public class SPL {
         Matrix m = augmented.copyMatrix();
         m = reducedEchelonForm(m);
 
-        Matrix a = m.removeRowColMatrix(0, m.getColsCount() - 1);
+        Matrix a = m.removeLastCol();
         double[] b = m.getCol(m.getColsCount() - 1);
 
         if(!doesSolutionExist(a, b)){
@@ -83,7 +83,7 @@ public class SPL {
 
         m = adjustLeadingOneRow(m);
 
-        a = m.removeRowColMatrix(0,m.getColsCount()-1);
+        a = m.removeLastCol();
         b = m.getCol(m.getColsCount()-1);
         return backSubstitute(a,b);
     }
@@ -145,7 +145,7 @@ public class SPL {
      *  [ 2 3  0] -> [0 1  2]
      *  [ 3 5  1]    [0 0  0]
      */
-    private static Matrix reducedEchelonForm(Matrix m){
+    public static Matrix reducedEchelonForm(Matrix m){
         Matrix m1 = m.copyMatrix();
         int rowCount = m1.getRowsCount();
         int colCount = m1.getColsCount();
