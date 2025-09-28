@@ -277,9 +277,7 @@ public class Matrix {
             }
         }
 
-    return invers;
+        return invers;
     }
-
-
 
 }

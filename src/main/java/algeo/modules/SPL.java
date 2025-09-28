@@ -275,4 +275,21 @@ public class SPL {
         }
         return solution;
     }
+
+
+    public static Matrix inverseMethod(Matrix coef, Matrix constantM) {
+        if (coef.getRowsCount() != coef.getColsCount()) {
+            throw new IllegalArgumentException("Matrix A harus persegi");
+        }
+
+        double det = MatrixOperator.detCofactor(coef);
+        if (det == 0) {
+            throw new IllegalArgumentException("Matrix A tidak ada invers (det = 0)");
+        }
+
+        Matrix inverseA = Matrix.inverse(coef);
+
+        return MatrixOperator.matrixMultiplication(inverseA, constantM);
+    }
+
 }
