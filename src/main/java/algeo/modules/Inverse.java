@@ -3,7 +3,7 @@ import algeo.modules.Matrix;
 import algeo.modules.MatrixOperator;
 import algeo.modules.SPL;
 
-public class Invers {
+public class Inverse {
     public Matrix inverseAugment() {
         if (!isSquare()) {
             throw new IllegalArgumentException("Matriks harus persegi");
@@ -26,16 +26,17 @@ public class Invers {
 
         return inverse;
     }
+
     public static Matrix inverseAdjoin(Matrix a) {
         if (!a.isSquare()) {
             throw new IllegalArgumentException("Invers tidak terdefinisi");
         }
 
-        double determinant = detCofactor(a);
+        double determinant = Determinant.detCofactor(a);
         if (determinant == 0) {
             throw new IllegalArgumentException("Matrix Singular, Invers tidak terdefinisi");
         }
 
-        return scalarDivision(cofactorMatrix(a).transpose(), determinant);
+        return Matrix.scalarDivision(Determinant.cofactorMatrix(a).transpose(), determinant);
     }
 }
