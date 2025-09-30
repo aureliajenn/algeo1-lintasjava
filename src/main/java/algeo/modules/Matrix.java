@@ -256,28 +256,26 @@ public class Matrix {
 
         return augmented;
     }
-
-    public Matrix inverse() {
-        if (!isSquare()) {
-            throw new IllegalArgumentException("Matriks harus persegi");
-        }
-
-        int n = getRowsCount();
-
-        // buat matriks [A | I]
-        Matrix I = Matrix.identity(n);
-        Matrix augmented = Matrix.augment(copyMatrix(), I);
-
-        Matrix reduced = SPL.reducedEchelonForm(augmented);
-
-        Matrix invers = new Matrix(n, n);
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                invers.setElmt(i, j, reduced.getElmt(i, j + n));
-            }
-        }
-
-        return invers;
-    }
-
+//    public Matrix inverseAugment() {
+//        if (!isSquare()) {
+//            throw new IllegalArgumentException("Matriks harus persegi");
+//        }
+//
+//        int n = getRowsCount();
+//
+//        // buat matriks [A | I]
+//        Matrix I = Matrix.identity(n);
+//        Matrix augmented = Matrix.augment(copyMatrix(), I);
+//
+//        Matrix reduced = SPL.reducedEchelonForm(augmented);
+//
+//        Matrix inverse = new Matrix(n, n);
+//        for (int i = 0; i < n; i++) {
+//            for (int j = 0; j < n; j++) {
+//                inverse.setElmt(i, j, reduced.getElmt(i, j + n));
+//            }
+//        }
+//
+//        return inverse;
+//    }
 }

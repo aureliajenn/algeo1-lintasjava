@@ -1,6 +1,8 @@
 package algeo.modules;
 import algeo.modules.Matrix;
 import algeo.modules.MatrixOperator;
+import algeo.modules.Inverse;
+import algeo.modules.Determinant;
 
 public class Regression {
 
@@ -9,7 +11,8 @@ public class Regression {
         // Hasil B berupa matrix
         Matrix Xt = Matrix.transpose(X);
         Matrix XtX = MatrixOperator.matrixMultiplication(Xt, X);
-        Matrix invM = Matrix.inverse(XtX);
+//        Matrix invM = Matrix.inverse(XtX);
+        Matrix invM = Inverse.inverseAugment(XtX);
         Matrix Xty = MatrixOperator.matrixMultiplication(Xt, y);
 
         Matrix result = MatrixOperator.matrixMultiplication(invM, Xty);

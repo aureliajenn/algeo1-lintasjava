@@ -1,6 +1,8 @@
 package algeo.modules;
 import algeo.modules.Matrix;
 import algeo.modules.MatrixOperator;
+import algeo.modules.Determinant;
+import algeo.modules.Inverse;
 
 public class SPL {
 
@@ -95,7 +97,8 @@ public class SPL {
      */
     public static Matrix cramer(Matrix coeffMatrix, Matrix constMatrix) {
         // calculate the determinant of coeffMatrix
-        double coeffMatDet = MatrixOperator.detCofactor(coeffMatrix);
+//        double coeffMatDet = MatrixOperator.detCofactor(coeffMatrix);
+        double coeffMatDet = Determinant.detCofactor(coeffMatrix);
         if (coeffMatDet == 0) {
             throw new IllegalArgumentException("Det == 0, cramer's method couldn't be applied");
         }
@@ -105,7 +108,8 @@ public class SPL {
         Matrix determinants = new Matrix(constMatrixRow, 1);
         for (int i = 0; i < constMatrixRow; i++) {
             Matrix replacedCol = coeffMatrix.replaceCol(i, constMatrix);
-            determinants.setElmt(i, 0, MatrixOperator.detCofactor(replacedCol));
+//            determinants.setElmt(i, 0, MatrixOperator.detCofactor(replacedCol));
+            determinants.setElmt(i, 0, Determinant.detCofactor(replacedCol));
         }
         // look for each
         return MatrixOperator.scalarDivision(determinants, coeffMatDet);
@@ -282,12 +286,14 @@ public class SPL {
             throw new IllegalArgumentException("Matrix A harus persegi");
         }
 
-        double det = MatrixOperator.detCofactor(coef);
+//        double det = MatrixOperator.detCofactor(coef);
+        double det = Determinant.detCofactor(coef);
         if (det == 0) {
             throw new IllegalArgumentException("Matrix A tidak ada invers (det = 0)");
         }
 
-        Matrix inverseA = Matrix.inverse(coef);
+//        Matrix inverseA = Matrix.inverse(coef);
+        Matrix inverseA = Inverse.inverseAugment(coef);
 
         return MatrixOperator.matrixMultiplication(inverseA, constantM);
     }
