@@ -11,11 +11,11 @@ public class Regression {
         // Hasil B berupa matrix
         Matrix Xt = X.transpose();
         Matrix XtX = MatrixOperator.matrixMultiplication(Xt, X);
-//        Matrix invM = Matrix.inverse(XtX);
+
         Matrix invM = Inverse.inverseAugment(XtX);
         Matrix Xty = MatrixOperator.matrixMultiplication(Xt, y);
 
-        Matrix result = MatrixOperator.matrixMultiplication(invM, Xty);
-        return result;
+        Matrix hasil = MatrixOperator.matrixMultiplication(invM, Xty);
+        return hasil;
     }
 }
