@@ -9,7 +9,7 @@ public class Regression {
     public static Matrix multiRegression(Matrix X, Matrix y) {
         // B = (X^T . X)^-1  . X^T . y
         // Hasil B berupa matrix
-        Matrix Xt = Matrix.transpose(X);
+        Matrix Xt = X.transpose();
         Matrix XtX = MatrixOperator.matrixMultiplication(Xt, X);
 //        Matrix invM = Matrix.inverse(XtX);
         Matrix invM = Inverse.inverseAugment(XtX);

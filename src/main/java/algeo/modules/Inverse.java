@@ -4,16 +4,16 @@ import algeo.modules.MatrixOperator;
 import algeo.modules.SPL;
 
 public class Inverse {
-    public Matrix inverseAugment() {
-        if (!isSquare()) {
+    public static Matrix inverseAugment(Matrix a) {
+        if (!a.isSquare()) {
             throw new IllegalArgumentException("Matriks harus persegi");
         }
 
-        int n = getRowsCount();
+        int n = a.getRowsCount();
 
         // buat matriks [A | I]
         Matrix I = Matrix.identity(n);
-        Matrix augmented = Matrix.augment(copyMatrix(), I);
+        Matrix augmented = Matrix.augment(a.copyMatrix(), I);
 
         Matrix reduced = SPL.reducedEchelonForm(augmented);
 
@@ -37,6 +37,6 @@ public class Inverse {
             throw new IllegalArgumentException("Matrix Singular, Invers tidak terdefinisi");
         }
 
-        return Matrix.scalarDivision(Determinant.cofactorMatrix(a).transpose(), determinant);
+        return MatrixOperator.scalarDivision(Determinant.cofactorMatrix(a).transpose(), determinant);
     }
 }
