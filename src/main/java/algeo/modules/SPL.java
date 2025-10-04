@@ -12,12 +12,19 @@ public class SPL {
     /*'                                                                    '*/
     /*'********************************************************************'*/
 
-    /*
-     * return solutions of a linear equation system
-     * with Gauss elimination method
-     */
-    public static Matrix gauss(Matrix augmented) {
+    public static class GaussResult {
+        public Matrix solution;
+        public String steps;
+
+        public GaussResult(Matrix solution, String steps) {
+            this.solution = solution;
+            this.steps = steps;
+        }
+    }
+    public static GaussResult gauss(Matrix augmented) {
         Matrix m = augmented.copyMatrix();
+        StringBuilder sb = new StringBuilder();
+        int stepCount = 1;
 
         int rowCount = m.getRowsCount();
         int colCount = m.getColsCount();
@@ -32,8 +39,15 @@ public class SPL {
                 continue;
             }
 
+            // swap baris
             if (nonZero != pivotRow) {
                 m.swapRow(pivotRow, nonZero);
+                sb.append(stepCount++)
+                .append(". Swap baris ")
+                .append(pivotRow + 1)
+                .append(" dan ")
+                .append(nonZero + 1)
+                .append("\n");
             }
 
             double pivotVal = m.getElmt(pivotRow, pivotCol);
@@ -49,7 +63,8 @@ public class SPL {
         Matrix A = m.removeLastCol();  // [A | b]
         double[] b = m.getCol(colCount - 1);
 
-        return backSubstitute(A, b);
+        Matrix solution = backSubstitute(A, b);
+        return new GaussResult(solution, sb.toString());
     }
 
 
@@ -105,21 +120,46 @@ public class SPL {
         return MatrixOperator.scalarDivision(determinants, coeffMatDet);
     }
 
-    public static Matrix inverseMethod(Matrix coef, Matrix constantM) {
+    public static class InverseMethodResult {
+        public Matrix solution;
+        public String steps;
+
+        public InverseMethodResult(Matrix solution, String steps) {
+            this.solution = solution;
+            this.steps = steps;
+        }
+    }
+
+    public static InverseMethodResult inverseMethod(Matrix coef, Matrix constantM) {
         if (coef.getRowsCount() != coef.getColsCount()) {
             throw new IllegalArgumentException("Matrix A harus persegi");
         }
 
-//        double det = MatrixOperator.detCofactor(coef);
+        StringBuilder sb = new StringBuilder();
+
         double det = Determinant.detCofactor(coef);
+        sb.append("1. Hitung determinan A = ").append(det).append("\n");
+
         if (det == 0) {
             throw new IllegalArgumentException("Matrix A tidak ada invers (det = 0)");
         }
 
-//        Matrix inverseA = Matrix.inverse(coef);
+        // Matrix inverseA = Matrix.inverse(coef);
         Matrix inverseA = Inverse.inverseAugment(coef);
+        sb.append("2. Cari invers matriks A dengan Gauss-Jordan\n");
 
-        return MatrixOperator.matrixMultiplication(inverseA, constantM);
+        Matrix solution = MatrixOperator.matrixMultiplication(inverseA, constantM);
+        sb.append("3. Hitung solusi A^(-1) * b\n");
+
+
+        // TODO: ini solusi boleh diapus
+        sb.append("4. Solusi SPL:\n");
+        for (int i = 0; i < solution.getRowsCount(); i++) {
+            sb.append("   x").append(i + 1).append(" = ").append(solution.getElmt(i, 0)).append("\n");
+        }
+
+        return new InverseMethodResult(solution, sb.toString());
+    
     }
     /*'***********************************************************************'*/
     /*'                                                                       '*/
