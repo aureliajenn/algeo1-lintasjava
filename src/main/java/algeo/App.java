@@ -253,7 +253,6 @@ public class App extends Application {
 
                 Matrix solutionRREF = SPL.gaussJordan(augmented);
 
-                // ### PERBAIKAN ###: Mengganti subMatrix dengan loop manual
                 Matrix coeffs = new Matrix(n, 1);
                 for (int i = 0; i < n; i++) {
                     coeffs.setElmt(i, 0, solutionRREF.getElmt(i, n));
@@ -355,42 +354,126 @@ public class App extends Application {
     // ==================== LOGIKA PERHITUNGAN ====================
 
     private String solveSPL(Matrix augmentedMatrix, String method) {
-        Matrix solution;
-        int rows = augmentedMatrix.getRowsCount();
-        int cols = augmentedMatrix.getColsCount();
+        try {
+            switch (method) {
+                case "Eliminasi Gauss":
+                case "Eliminasi Gauss-Jordan":
+                    Matrix solutionMatrix = SPL.gaussJordan(augmentedMatrix.copyMatrix());
+                    return formatSolutionResult(solutionMatrix);
 
-        switch (method) {
-            case "Eliminasi Gauss":
-            case "Eliminasi Gauss-Jordan":
-                Matrix rref = SPL.gaussJordan(augmentedMatrix.copyMatrix());
-                return formatSplSolution(rref);
-            case "Metode Matriks Balikan":
-            case "Kaidah Cramer":
-                // ### PERBAIKAN ###: Mengganti subMatrix dengan loop manual
-                int numVars = cols - 1;
-                Matrix A = new Matrix(rows, numVars);
-                Matrix b = new Matrix(rows, 1);
-                for (int i = 0; i < rows; i++) {
-                    for (int j = 0; j < numVars; j++) {
-                        A.setElmt(i, j, augmentedMatrix.getElmt(i, j));
+                case "Metode Matriks Balikan":
+                case "Kaidah Cramer":
+                    int rows = augmentedMatrix.getRowsCount();
+                    int cols = augmentedMatrix.getColsCount();
+                    int numVars = cols - 1;
+
+                    if (rows != numVars) {
+                        return "Error: Untuk metode ini, matriks koefisien (A) harus persegi.";
                     }
-                    b.setElmt(i, 0, augmentedMatrix.getElmt(i, numVars));
-                }
 
-                if (method.equals("Metode Matriks Balikan")) {
-                    solution = SPL.inverseMethod(A, b);
-                } else {
-                    solution = SPL.cramer(A, b);
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Metode SPL tidak dikenal.");
+                    // Memisahkan A dan b
+                    Matrix A = new Matrix(rows, numVars);
+                    Matrix b = new Matrix(rows, 1);
+                    for (int i = 0; i < rows; i++) {
+                        for (int j = 0; j < numVars; j++) {
+                            A.setElmt(i, j, augmentedMatrix.getElmt(i, j));
+                        }
+                        b.setElmt(i, 0, augmentedMatrix.getElmt(i, numVars));
+                    }
+
+                    Matrix uniqueSolution;
+                    if (method.equals("Metode Matriks Balikan")) {
+                        uniqueSolution = SPL.inverseMethod(A, b);
+                    } else { // Kaidah Cramer
+                        uniqueSolution = SPL.cramer(A, b);
+                    }
+                    return formatSolutionResult(uniqueSolution);
+
+                default:
+                    return "Metode SPL tidak dikenal.";
+            }
+        } catch (IllegalArgumentException e) {
+            // Menangkap error "det=0" dari metode Cramer/Inverse
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Memformat matriks hasil solusi SPL menjadi String yang mudah dibaca.
+     * Fungsi ini bisa menangani kasus tidak ada solusi, solusi unik, dan solusi parametrik.
+     *
+     * @param solutionMatrix Matriks hasil dari fungsi SPL.solve...
+     * @return String representasi dari solusi.
+     */
+    private String formatSolutionResult(Matrix solutionMatrix) {
+        // kasus 1: Tidak ada solusi
+        if (solutionMatrix == null) {
+            return "Sistem Persamaan Linier tidak memiliki solusi.";
         }
 
-        if (solution == null) {
-            return "SPL tidak memiliki solusi.";
+        int numVariables = solutionMatrix.getRowsCount();
+        int numCols = solutionMatrix.getColsCount();
+        StringBuilder sb = new StringBuilder();
+
+        // kasus 2: Solusi unik (matriks hasil hanya punya 1 kolom)
+        if (numCols == 1) {
+            sb.append("Solusi unik ditemukan:\n");
+            for (int i = 0; i < numVariables; i++) {
+                // Format: x1 = 3.0, x2 = 4.5, dst.
+                sb.append(String.format("x%d = %.4f\n", i + 1, solutionMatrix.getElmt(i, 0)));
+            }
+            return sb.toString();
         }
-        return "Solusi tunggal:\n" + formatSolutionVector(solution);
+
+        // kasus 3: Solusi banyak / parametrik (matriks hasil > 1 kolom)
+        else {
+            sb.append("Terdapat banyak solusi (solusi parametrik):\n");
+            String[] params = {"t", "s", "r", "p", "q"}; // Nama parameter
+
+            for (int i = 0; i < numVariables; i++) { // Untuk setiap variabel (x1, x2, ...)
+                sb.append(String.format("x%d = ", i + 1));
+
+                // Ambil bagian konstanta (dari kolom pertama)
+                double constant = solutionMatrix.getElmt(i, 0);
+                boolean isFirstTerm = true;
+
+                // Tampilkan konstanta jika tidak nol atau jika itu satu-satunya suku
+                if (constant != 0 || numCols == 1) {
+                    sb.append(String.format("%.4f", constant));
+                    isFirstTerm = false;
+                }
+
+                // Tambahkan bagian parametrik (dari kolom-kolom berikutnya)
+                for (int j = 1; j < numCols; j++) {
+                    double coeff = solutionMatrix.getElmt(i, j);
+                    if (Math.abs(coeff) > 1e-9) { // Cek jika koefisien tidak nol
+                        String paramName = (j - 1 < params.length) ? params[j - 1] : "t" + (j);
+
+                        // Tentukan tanda (+ atau -)
+                        if (!isFirstTerm) {
+                            sb.append(coeff > 0 ? " + " : " - ");
+                        } else if(coeff < 0) {
+                            sb.append("-");
+                        }
+
+                        isFirstTerm = false;
+
+                        double absCoeff = Math.abs(coeff);
+                        // Jangan tampilkan angka 1 jika tidak perlu (misal: "t" bukan "1.00t")
+                        if (Math.abs(absCoeff - 1.0) > 1e-9) {
+                            sb.append(String.format("%.4f", absCoeff));
+                        }
+                        sb.append(paramName);
+                    }
+                }
+                // Jika semua 0, berarti xi = 0
+                if (isFirstTerm) {
+                    sb.append("0.0000");
+                }
+                sb.append("\n");
+            }
+            return sb.toString();
+        }
     }
 
     private String solveDeterminant(Matrix matrix, String method) {
