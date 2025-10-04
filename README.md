@@ -1,8 +1,28 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/M53Bs6Dv)
 # Aljabar Linier dan Geometri Tubes 1 Template
+| NIM      | Nama                     |
+|:---------|:-------------------------|
+| 13524030 | Irvin Tandiarrang Sumual |
+| 13524089 | Aurelia Jennifer Gunawan |
+| 13524122 | Nathaniel Christian      |
 
-## About this template
 
+## Penjelasan Singkat Program
+This template is the starter file structure for Tubes 1 Algeo 2025/2026. This template is a Java project using Maven Build tool with JavaFX GUI already configured in pom.xml.
+
+In this project, you can choose if you want to develop to CLI or GUI app. The default is CLI, if you want GUI do uncomment the necessary part in App.java to run the template GUI test then run the commands below to run the app.
+
+## Alur Program
+This template is the starter file structure for Tubes 1 Algeo 2025/2026. This template is a Java project using Maven Build tool with JavaFX GUI already configured in pom.xml.
+
+In this project, you can choose if you want to develop to CLI or GUI app. The default is CLI, if you want GUI do uncomment the necessary part in App.java to run the template GUI test then run the commands below to run the app.
+
+## Tata Cara Menjalankan Program
+This template is the starter file structure for Tubes 1 Algeo 2025/2026. This template is a Java project using Maven Build tool with JavaFX GUI already configured in pom.xml.
+
+In this project, you can choose if you want to develop to CLI or GUI app. The default is CLI, if you want GUI do uncomment the necessary part in App.java to run the template GUI test then run the commands below to run the app.
+
+## Deskripsi Singkat Fungsi
 This template is the starter file structure for Tubes 1 Algeo 2025/2026. This template is a Java project using Maven Build tool with JavaFX GUI already configured in pom.xml.
 
 In this project, you can choose if you want to develop to CLI or GUI app. The default is CLI, if you want GUI do uncomment the necessary part in App.java to run the template GUI test then run the commands below to run the app.
