@@ -64,30 +64,20 @@ public class SPL {
         Matrix a = m.removeLastCol();
         double[] b = m.getCol(m.getColsCount() - 1);
 
-        if(!doesSolutionExist(a, b)){
+        if(checkNoSolution(a, b)){
+            // Jika tidak ada solusi, kembalikan null
+            System.out.println("Tidak ada solusi.");
             return null;
+        } else if (checkUniqueSolution(a, b)){
+            // Jika solusi unik, langsung hitung dengan substitusi balik
+            System.out.println("Solusi unik ditemukan.");
+            return backSubstitute(a,b);
+        } else {
+            // Jika tidak keduanya, berarti solusi banyak.
+            // Panggil fungsi untuk membuat matriks parametrik.
+            System.out.println("Terdapat banyak solusi (solusi parametrik).");
+            return getParametricSolution(a, b);
         }
-        if (m.getRowsCount() < m.getColsCount() - 1){
-            int diff = (m.getColsCount() - 1) - m.getRowsCount();
-            Matrix extended = new Matrix(m.getRowsCount() + diff, m.getColsCount());
-            for(int i = 0; i < m.getRowsCount(); i++){
-                extended.setRow(i, m.getRow(i));
-            }
-            m = extended;
-        } else if (m.getRowsCount() > m.getColsCount() - 1){
-            int newRow = m.getColsCount() - 1;
-            Matrix trimmed = new Matrix(newRow, m.getColsCount());
-            for(int i = 0; i < newRow; i++){
-                trimmed.setRow(i,m.getRow(i));
-            }
-            m = trimmed;
-        }
-
-        m = adjustLeadingOneRow(m);
-
-        a = m.removeLastCol();
-        b = m.getCol(m.getColsCount()-1);
-        return backSubstitute(a,b);
     }
 
     /*
@@ -115,11 +105,92 @@ public class SPL {
         return MatrixOperator.scalarDivision(determinants, coeffMatDet);
     }
 
+    public static Matrix inverseMethod(Matrix coef, Matrix constantM) {
+        if (coef.getRowsCount() != coef.getColsCount()) {
+            throw new IllegalArgumentException("Matrix A harus persegi");
+        }
+
+//        double det = MatrixOperator.detCofactor(coef);
+        double det = Determinant.detCofactor(coef);
+        if (det == 0) {
+            throw new IllegalArgumentException("Matrix A tidak ada invers (det = 0)");
+        }
+
+//        Matrix inverseA = Matrix.inverse(coef);
+        Matrix inverseA = Inverse.inverseAugment(coef);
+
+        return MatrixOperator.matrixMultiplication(inverseA, constantM);
+    }
     /*'***********************************************************************'*/
     /*'                                                                       '*/
     /*                               helpers                                   */
     /*'                                                                       '*/
     /*'***********************************************************************'*/
+
+    /*
+     * Membangun matriks yang merepresentasikan solusi parametrik untuk sistem
+     * dengan banyak solusi.
+     * Kolom pertama matriks hasil adalah solusi khusus (particular solution).
+     * Kolom-kolom berikutnya adalah vektor yang berkorespondensi dengan setiap variabel bebas (parameter).
+     */
+    public static Matrix getParametricSolution(Matrix a, double[] b) {
+        int n = a.getColsCount();
+        boolean[] isPivot = new boolean[n];
+        int[] pivotRows = new int[n];
+        java.util.Arrays.fill(pivotRows, -1);
+
+        // Identifikasi variabel pivot dan bebas
+        for (int i = 0; i < a.getRowsCount(); i++) {
+            for (int j = 0; j < n; j++) {
+                if (a.getElmt(i, j) == 1) {
+                    isPivot[j] = true;
+                    pivotRows[j] = i;
+                    break;
+                }
+            }
+        }
+
+        java.util.ArrayList<Integer> freeVarIndices = new java.util.ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            if (!isPivot[i]) {
+                freeVarIndices.add(i);
+            }
+        }
+
+        // Buat matriks hasil
+        // Jumlah kolom = 1 (untuk solusi khusus) + jumlah variabel bebas
+        int resultCols = 1 + freeVarIndices.size();
+        Matrix result = new Matrix(n, resultCols);
+
+        // Isi kolom pertama (solusi khusus)
+        // Variabel pivot diisi dengan nilai dari vektor b
+        // Variabel bebas bernilai 0
+        for (int i = 0; i < n; i++) {
+            if (isPivot[i]) {
+                result.setElmt(i, 0, b[pivotRows[i]]);
+            }
+        }
+
+        // Isi kolom untuk setiap variabel bebas/parameter
+        for (int k = 0; k < freeVarIndices.size(); k++) {
+            int freeVarIndex = freeVarIndices.get(k);
+            int resultCol = k + 1;
+
+            // Nilai variabel bebas itu sendiri adalah 1 (misal z = 1*t)
+            result.setElmt(freeVarIndex, resultCol, 1.0);
+
+            // Nilai variabel pivot bergantung pada koefisien variabel bebas
+            for (int i = 0; i < n; i++) {
+                if (isPivot[i]) {
+                    int row = pivotRows[i];
+                    // Nilainya adalah negatif dari koefisien variabel bebas di baris pivot tsb
+                    result.setElmt(i, resultCol, -a.getElmt(row, freeVarIndex));
+                }
+            }
+        }
+
+        return result;
+    }
 
     public static Matrix zeroBelowPivot(Matrix m, int pivotRow, int pivotCol){
         Matrix m1 = m.copyMatrix();
@@ -238,29 +309,80 @@ public class SPL {
     }
 
     /*
-     * check if the linear equation system has a solution
+     * Checks if the linear equation system has no solution.
      */
-    private static boolean doesSolutionExist(Matrix a, double[] b){
-        for(int i = a.getRowsCount()-1;i >= 0; i--){
-            boolean isAllZero = true;
-            for(int j = 0; j < a.getColsCount(); j++){
-                if (a.getElmt(i,j) != 0){
-                    isAllZero = false;
+    public static boolean checkNoSolution(Matrix a, double[] b) {
+        for (int i = 0; i < a.getRowsCount(); i++) {
+            boolean isRowAllZero = true;
+            // Check if the entire row in the coefficient matrix is zero
+            for (int j = 0; j < a.getColsCount(); j++) {
+                if (a.getElmt(i, j) != 0) {
+                    isRowAllZero = false;
                     break;
                 }
             }
-            if (isAllZero && (b[i] != 0)){
-                return false;
+            // check if 0 = non-zero value
+            if (isRowAllZero && b[i] != 0) {
+                return true;
             }
         }
-        return true;
+        return false;
+    }
+
+    /*
+     * Checks if the linear equation system has infinitely many solutions.
+     */
+    public static boolean checkManySolution(Matrix a, double[] b) {
+        if (checkNoSolution(a, b)) {
+            return false;
+        }
+
+        // The rank of a matrix in row echelon form is its number of non-zero rows.
+        int rank = 0;
+        for (int i = 0; i < a.getRowsCount(); i++) {
+            for (int j = 0; j < a.getColsCount(); j++) {
+                if (a.getElmt(i, j) != 0) {
+                    rank++;
+                    break;
+                }
+            }
+        }
+
+        int n = a.getColsCount();
+        return rank < n;
+    }
+
+    /*
+     * Checks if the linear equation system has a unique solution.
+     * This occurs if the system is consistent (has no contradictions) and the rank
+     * of the coefficient matrix is equal to the number of variables. This means there
+     * are no free variables.
+     */
+    public static boolean checkUniqueSolution(Matrix a, double[] b) {
+        if (checkNoSolution(a, b) || checkManySolution(a, b)) {
+            return false;
+        }
+
+        // The rank of a matrix in row echelon form is its number of non-zero rows.
+        int rank = 0;
+        for (int i = 0; i < a.getRowsCount(); i++) {
+            for (int j = 0; j < a.getColsCount(); j++) {
+                if (a.getElmt(i, j) != 0) {
+                    rank++;
+                    break;
+                }
+            }
+        }
+
+        int n = a.getColsCount();
+        // A unique solution exists if the system is consistent and rank equals the number of variables.
+        return rank == n;
     }
 
     /*
      * do the backward substitution to get the result of the linear equation
      * in gauss method
      */
-
     private static Matrix backSubstitute(Matrix A, double[] B) {
         int n = A.getColsCount();
         Matrix solution = new Matrix(n, 1);
@@ -278,24 +400,6 @@ public class SPL {
             solution.setElmt(idx, 0, xi);
         }
         return solution;
-    }
-
-
-    public static Matrix inverseMethod(Matrix coef, Matrix constantM) {
-        if (coef.getRowsCount() != coef.getColsCount()) {
-            throw new IllegalArgumentException("Matrix A harus persegi");
-        }
-
-//        double det = MatrixOperator.detCofactor(coef);
-        double det = Determinant.detCofactor(coef);
-        if (det == 0) {
-            throw new IllegalArgumentException("Matrix A tidak ada invers (det = 0)");
-        }
-
-//        Matrix inverseA = Matrix.inverse(coef);
-        Matrix inverseA = Inverse.inverseAugment(coef);
-
-        return MatrixOperator.matrixMultiplication(inverseA, constantM);
     }
 
 }
