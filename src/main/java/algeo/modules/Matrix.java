@@ -1,32 +1,3 @@
-/*
-public Matrix(int rows, int cols)
-public Matrix(double[][] val)
-
-public int getRowsCount()
-public int getColsCount()
-
-public double getElmt(int i, int j)
-public double[] getRow(int r)
-public double[] getCol(int c)
-
-public void setElmt(int i, int j, double val)
-public void setRow(int r, double[] values)
-public void setCol(int c, double[] values)
-
-public void displayMatrix()
-public Matrix copyMatrix()
-
-public void swapRow(int i, int j)
-public void scaleRow(int row, double constant)
-public void addRowMultiple(int targetRow, int rowHelper, double constant)
-
-public boolean isSquare()
-
-public Matrix transpose()
-public static Matrix identity(int dimension)
-public Matrix removeRowColMatrix(int row, int col)
- */
-
 package algeo.modules;
 
 import java.util.Arrays;
