@@ -9,6 +9,10 @@ public class Inverse {
             throw new IllegalArgumentException("Matriks harus persegi");
         }
 
+        double determinant = Determinant.detCofactor(a);
+        if (determinant == 0) {
+            throw new IllegalArgumentException("Matrix Singular, Invers tidak terdefinisi");
+        }
         int n = a.getRowsCount();
 
         // buat matriks [A | I]
@@ -37,6 +41,25 @@ public class Inverse {
             throw new IllegalArgumentException("Matrix Singular, Invers tidak terdefinisi");
         }
 
-        return MatrixOperator.scalarDivision(Determinant.cofactorMatrix(a).transpose(), determinant);
+        return MatrixOperator.scalarDivision(cofactorMatrix(a).transpose(), determinant);
+    }
+
+    /*
+     * membentuk matriks kofaktor dari matriks a
+     */
+    public static Matrix cofactorMatrix(Matrix a){
+        if (!a.isSquare()){
+            throw new IllegalStateException("Matriks kofaktor hanya bisa dibentuk dari matriks persegi");
+        }
+        int n = a.getRowsCount();
+        Matrix result = new Matrix(n,n);
+        for (int i = 0; i < n;i++){
+            for (int j = 0; j < a.getColsCount(); j++){
+                Matrix r = a.removeRowColMatrix(i,j);
+                double cofactor = Math.pow(-1 , (i + j)) * Determinant.detCofactor(r);
+                result.setElmt(i,j,cofactor);
+            }
+        }
+        return result;
     }
 }

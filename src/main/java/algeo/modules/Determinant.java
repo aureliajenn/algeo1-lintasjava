@@ -28,24 +28,6 @@ public class Determinant {
             return det;
         }
     }
-    /*
-     * membentuk matriks kofaktor dari matriks a
-     */
-    public static Matrix cofactorMatrix(Matrix a){
-        if (!a.isSquare()){
-            throw new IllegalStateException("Matriks kofaktor hanya bisa dibentuk dari matriks persegi");
-        }
-        int n = a.getRowsCount();
-        Matrix result = new Matrix(n,n);
-        for (int i = 0; i < n;i++){
-            for (int j = 0; j < a.getColsCount(); j++){
-                Matrix r = a.removeRowColMatrix(i,j);
-                double cofactor = Math.pow(-1 , (i + j)) * detCofactor(r);
-                result.setElmt(i,j,cofactor);
-            }
-        }
-        return result;
-    }
 
     /*
      * hitung determinan dari matriks a dengan metode reduksi baris
