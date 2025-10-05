@@ -47,10 +47,13 @@ public class Inverse {
 
     private static Matrix inverseAugmentWithoutSteps(Matrix a) {
         int n = a.getRowsCount();
+        StringBuilder sb = new StringBuilder();
 
         // buat matriks [A | I]
         Matrix I = Matrix.identity(n);
         Matrix augmented = Matrix.augment(a.copyMatrix(), I);
+        sb.append("1: Membentuk matriks augmented [A | I]\n");
+        sb.append(augmented.toString()).append("\n\n");
 
         Matrix reduced = SPL.reducedEchelonFormWithoutSteps(augmented);
 
