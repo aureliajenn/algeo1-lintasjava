@@ -2,35 +2,38 @@ package algeo.modules;
 import algeo.modules.Matrix;
 import algeo.modules.MatrixOperator;
 import algeo.modules.SPL;
-
+import algeo.modules.InverseResult;
+import algeo.modules.Determinant;
+import java.util.Formatter;
+import algeo.modules.CofactorResult;
 public class Inverse {
-    public static class InverseResult {
-        public Matrix inverse;
-        public String steps;
-
-        public InverseResult(Matrix inverse, String steps) {
-            this.inverse = inverse;
-            this.steps = steps;
-        }
-    }
-
+    private static final int DIMENSION_THRESHOLD  = 11;
     public static InverseResult inverseAugment(Matrix a) {
         if (!a.isSquare()) {
             throw new IllegalArgumentException("Matriks harus persegi");
         }
 
-        int n = a.getRowsCount();
-        StringBuilder sb = new StringBuilder();
+        DeterminantResult determinant = Determinant.detReduksiBaris(a);
+        if (determinant.value== 0) {
+            throw new IllegalArgumentException("Matrix Singular, Invers tidak terdefinisi");
+        }
 
+
+        if (a.getRowsCount() > DIMENSION_THRESHOLD) {
+            Matrix inverse = inverseAugmentWithoutSteps(a);
+            String stepString = "Langkah-langkah tidak ditampilkan karena dimensi matrix > " + DIMENSION_THRESHOLD + " x " + DIMENSION_THRESHOLD;
+            return new InverseResult(inverse, stepString);
+        }
+        int n = a.getRowsCount();
         // buat matriks [A | I]
+        StringBuilder steps = new StringBuilder("Menghitung invers menggunakan metode Augment.\n\n");
         Matrix I = Matrix.identity(n);
         Matrix augmented = Matrix.augment(a.copyMatrix(), I);
-        sb.append("1: Membentuk matriks augmented [A | I]\n");
-        sb.append(augmented.toString()).append("\n\n");
-
-        Matrix reduced = SPL.reducedEchelonForm(augmented);
-        sb.append("2. Eliminasi Gauss-Jordan:\n");
-        sb.append(reduced.toString()).append("\n\n");
+        steps.append("Langkah 1: Bentuk matriks augmented [A | I]:\n").append(augmented).append("\n\n");
+        steps.append("Langkah 2: Lakukan OBE untuk mengubah matriks menjadi [I | A⁻¹]:\n");
+        SPLResult rrefResult = SPL.reducedEchelonFormWithSteps(augmented);
+        steps.append(rrefResult.steps);
+        Matrix reduced = rrefResult.solution;
 
         Matrix inverse = new Matrix(n, n);
         for (int i = 0; i < n; i++) {
@@ -38,23 +41,96 @@ public class Inverse {
                 inverse.setElmt(i, j, reduced.getElmt(i, j + n));
             }
         }
+        steps.append("\nLangkah 3: Ekstrak bagian kanan matriks untuk mendapatkan A⁻¹:\n").append(inverse);
+        return new InverseResult(inverse, steps.toString());
+    }
 
-        sb.append("3. Sisi kanan sebagai matriks invers\n");
-        sb.append(inverse.toString());
+    private static Matrix inverseAugmentWithoutSteps(Matrix a) {
+        int n = a.getRowsCount();
 
-        return new InverseResult(inverse, sb.toString());
+        // buat matriks [A | I]
+        Matrix I = Matrix.identity(n);
+        Matrix augmented = Matrix.augment(a.copyMatrix(), I);
+
+        Matrix reduced = SPL.reducedEchelonFormWithoutSteps(augmented);
+
+        Matrix inverse = new Matrix(n, n);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                inverse.setElmt(i, j, reduced.getElmt(i, j + n));
+            }
+        }
+        return inverse;
     }
 
     public static InverseResult inverseAdjoin(Matrix a) {
         if (!a.isSquare()) {
-            throw new IllegalArgumentException("Matriks harus persegi");
+            throw new IllegalArgumentException("Invers tidak terdefinisi untuk matriks nonpersegi");
         }
-        // TODO: implementasi langkah inversAdjoin
-        double determinant = Determinant.detCofactor(a);
-        if (determinant == 0) {
+
+        DeterminantResult determinant = Determinant.detReduksiBaris(a);
+        if (determinant.value == 0) {
             throw new IllegalArgumentException("Matrix Singular, Invers tidak terdefinisi");
         }
 
-        return MatrixOperator.scalarDivision(Determinant.cofactorMatrix(a).transpose(), determinant);
+        if (a.getRowsCount() > DIMENSION_THRESHOLD) {
+            Matrix cof = cofactorMatrix(a).matrix;
+            Matrix adj = cof.transpose();
+            Matrix inv = MatrixOperator.scalarDivision(adj, determinant.value);
+            return new InverseResult(inv, "Langkah-langkah tidak ditampilkan untuk Invers Adjoin pada matriks besar.");
+        }
+
+        StringBuilder steps = new StringBuilder("Menghitung invers metode Adjoin: A⁻¹ = (1/det(A)) * Adj(A)\n\n");
+        steps.append("LANGKAH 1: Menghitung determinan matriks A...\n");
+        steps.append("Hasil: det(A) = ").append(String.format("%.4f", determinant.value)).append("\n\n");
+
+        steps.append("LANGKAH 2: Membentuk matriks Adjoin (Adj(A) = Cᵀ).\n");
+        CofactorResult cofactorRes = cofactorMatrix(a);
+        steps.append(cofactorRes.steps);
+        Matrix adjoinMatrix = cofactorRes.matrix.transpose();
+        steps.append("Matriks Adjoin (Adj(A)) adalah transpose dari matriks kofaktor:\n").append(adjoinMatrix).append("\n\n");
+
+        steps.append("LANGKAH 3: Hitung invers akhir A⁻¹ = (1/det(A)) * Adj(A).\n");
+        Matrix inverse = MatrixOperator.scalarDivision(adjoinMatrix, determinant.value);
+        steps.append("Matriks Invers (A⁻¹) hasil akhir:\n").append(inverse);
+
+        return new InverseResult(inverse, steps.toString());
+    }
+
+    /*
+     * membentuk matriks kofaktor dari matriks a
+     */
+    public static CofactorResult cofactorMatrix(Matrix a){
+        if (!a.isSquare()){
+            throw new IllegalStateException("Matriks kofaktor hanya bisa dibentuk dari matriks persegi");
+        }
+
+        int n = a.getRowsCount();
+        if (n > DIMENSION_THRESHOLD) {
+            Matrix result = new Matrix(n,n);
+            for (int i = 0; i < n;i++){
+                for (int j = 0; j < a.getColsCount(); j++){
+                    Matrix r = a.removeRowColMatrix(i,j);
+                    double cofactor = Math.pow(-1 , (i + j)) * Determinant.detReduksiBaris(r).value;
+                    result.setElmt(i,j,cofactor);
+                }
+            }
+            return new CofactorResult(result, "Langkah-langkah pembentukan matriks kofaktor tidak ditampilkan untuk matriks besar.");
+        }
+
+        StringBuilder steps = new StringBuilder("Membentuk Matriks Kofaktor:\n");
+        Matrix result = new Matrix(n,n);
+        for (int i = 0; i < n;i++){
+            for (int j = 0; j < a.getColsCount(); j++){
+                steps.append("- Menghitung Kofaktor C(").append(i + 1).append(",").append(j + 1).append(")\n");
+                Matrix r = a.removeRowColMatrix(i,j);
+                double minorDetValue = Determinant.detReduksiBaris(r).value;
+                double cofactor = Math.pow(-1 , (i + j)) * minorDetValue;
+                steps.append(String.format("  -> det(Minor) = %.4f -> Kofaktor = %.4f\n", minorDetValue, cofactor));
+                result.setElmt(i,j,cofactor);
+            }
+        }
+        steps.append("\nMatriks Kofaktor akhir yang terbentuk:\n").append(result).append("\n");
+        return new CofactorResult(result, steps.toString());
     }
 }

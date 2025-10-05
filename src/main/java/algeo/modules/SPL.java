@@ -3,8 +3,10 @@ import algeo.modules.Matrix;
 import algeo.modules.MatrixOperator;
 import algeo.modules.Determinant;
 import algeo.modules.Inverse;
-
+import algeo.modules.SPLResult;
+import java.util.Formatter;
 public class SPL {
+    private static final int DIMENSION_THRESHOLD  = 11;
 
     /*'********************************************************************'*/
     /*'                                                                    '*/
@@ -12,19 +14,265 @@ public class SPL {
     /*'                                                                    '*/
     /*'********************************************************************'*/
 
-    public static class GaussResult {
-        public Matrix solution;
-        public String steps;
+    /*
+     * return solutions of a linear equation system
+     * with Gauss elimination method
+     */
+    public static SPLResult gauss(Matrix augmented) {
+        if (augmented.getRowsCount() > DIMENSION_THRESHOLD) {
+            Matrix solution = gaussWithoutSteps(augmented);
+            return new SPLResult(solution, "Langkah-langkah tidak ditampilkan pada matriks besar.");
+        }
 
-        public GaussResult(Matrix solution, String steps) {
-            this.solution = solution;
-            this.steps = steps;
+        StringBuilder steps = new StringBuilder("Menyelesaikan SPL dengan Eliminasi Gauss:\n\n");
+        SPLResult echelonResult = echelonFormWithSteps(augmented);
+        steps.append(echelonResult.steps);
+        Matrix m = echelonResult.solution;
+
+        steps.append("\nLANGKAH 2: Melakukan substitusi balik untuk menemukan solusi.\n");
+
+        Matrix a = m.removeLastCol();  // [a | b]
+        double[] b = m.getCol(m.getColsCount() - 1);
+
+        if (checkNoSolution(a, b)) {
+            steps.append("-> Ditemukan baris [0 0 ... | c] dengan c != 0. SPL tidak memiliki solusi.\n");
+            return new SPLResult(null, steps.toString());
+        }
+
+        Matrix solution = backSubstitute(a, b);
+        steps.append("Solusi akhir yang ditemukan:\n").append(solution);
+        return new SPLResult(solution, steps.toString());
+    }
+
+
+    /*
+     * return solutions of a linear equation system
+     * with Gauss-Jordan elimination method
+     */
+    public static SPLResult gaussJordan(Matrix augmented){
+        if (augmented.getRowsCount() > DIMENSION_THRESHOLD) {
+            Matrix solution = gaussJordanWithoutSteps(augmented);
+            return new SPLResult(solution, "Langkah-langkah tidak ditampilkan pada matriks besar.");
+        }
+
+        StringBuilder steps = new StringBuilder("Menyelesaikan SPL dengan Eliminasi Gauss-Jordan:\n\n");
+        SPLResult rrefResult = reducedEchelonFormWithSteps(augmented);
+        steps.append(rrefResult.steps);
+        Matrix m = rrefResult.solution;
+
+        steps.append("\nAnalisis Solusi dari matriks RREF:\n");
+        Matrix a = m.removeLastCol();
+        double[] b = m.getCol(m.getColsCount() - 1);
+
+        if(checkNoSolution(a, b)){
+            // Jika tidak ada solusi, kembalikan null
+//            System.out.println("Tidak ada solusi.");
+            steps.append("-> Ditemukan baris [0 0 ... | c] dengan c != 0. SPL tidak memiliki solusi.\n");
+            return new SPLResult(null, steps.toString());
+        } else if (checkUniqueSolution(a, b)){
+            // Jika solusi unik, langsung hitung dengan substitusi balik
+//            System.out.println("Solusi unik ditemukan.");
+            steps.append("-> Setiap variabel adalah variabel pivot. SPL memiliki solusi unik.\n");
+            Matrix solution = backSubstitute(a, b);
+            steps.append("Solusi:\n").append(solution);
+            return new SPLResult(solution, steps.toString());
+        } else {
+            // Jika tidak keduanya, berarti solusi banyak.
+            // Panggil fungsi untuk membuat matriks parametrik.
+//            System.out.println("Terdapat banyak solusi (solusi parametrik).");
+            steps.append("-> Terdapat variabel bebas. SPL memiliki banyak solusi (parametrik).\n");
+            Matrix solution = getParametricSolution(a, b);
+            steps.append("Solusi Parametrik (kolom pertama adalah konstanta, kolom berikutnya adalah parameter):\n").append(solution);
+            return new SPLResult(solution, steps.toString());
         }
     }
-    public static GaussResult gauss(Matrix augmented) {
+
+    /*
+     * return solutions of a linear equation system using cramer method
+     * Ax = b
+     *
+     */
+    public static SPLResult cramer(Matrix coeffMatrix, Matrix constMatrix) {
+        double coeffMatDet = Determinant.detReduksiBaris(coeffMatrix).value;
+        if (coeffMatDet == 0) {
+            throw new IllegalArgumentException("Det == 0, cramer's method couldn't be applied");
+        }
+
+        if (coeffMatrix.getRowsCount() > DIMENSION_THRESHOLD) {
+            // apply cramer's rule
+            int constMatrixRow = constMatrix.getRowsCount();
+            Matrix determinants = new Matrix(constMatrixRow, 1);
+            for (int i = 0; i < constMatrixRow; i++) {
+                Matrix replacedCol = coeffMatrix.replaceCol(i, constMatrix);
+                determinants.setElmt(i, 0, Determinant.detReduksiBaris(replacedCol).value);
+            }
+            // look for each
+            Matrix solution =  MatrixOperator.scalarDivision(determinants, coeffMatDet);
+            return new SPLResult(solution, "Langkah-langkah tidak ditampilkan untuk Kaidah Cramer pada matriks besar.");
+        }
+
+        // Versi lengkap dengan langkah-langkah untuk matriks kecil
+        StringBuilder steps = new StringBuilder("Menyelesaikan SPL dengan Kaidah Cramer: xi = det(Ai) / det(A)\n\n");
+        steps.append("LANGKAH 1: Menghitung determinan matriks koefisien (A)...\n");
+        steps.append("Hasil: det(A) = ").append(String.format("%.4f", coeffMatDet)).append("\n\n");
+
+
+        // apply cramer's rule
+        int constMatrixRow = constMatrix.getRowsCount();
+        Matrix determinants = new Matrix(constMatrixRow, 1);
+        for (int i = 0; i < constMatrixRow; i++) {
+            steps.append("LANGKAH ").append(i + 2).append(": Hitung det(A").append(i + 1).append(").\n");
+            Matrix replacedCol = coeffMatrix.replaceCol(i, constMatrix);
+            steps.append("Matriks A").append(i + 1).append(" (kolom ").append(i + 1).append(" diganti):\n").append(replacedCol).append("\n");
+
+            double determinant = Determinant.detReduksiBaris(replacedCol).value; // Langsung ambil nilainya
+            steps.append("Hasil: det(A").append(i + 1).append(") = ").append(String.format("%.4f", determinant)).append("\n\n");
+            determinants.setElmt(i, 0, determinant);
+        }
+        // look for each
+        Matrix solution =  MatrixOperator.scalarDivision(determinants, coeffMatDet);
+        steps.append("Solusi akhir:\n").append(solution);
+        return new SPLResult(solution, steps.toString());
+    }
+
+    public static SPLResult inverseMethod(Matrix coef, Matrix constantM) {
+        if (coef.getRowsCount() != coef.getColsCount()) {
+            throw new IllegalArgumentException("Matrix A harus persegi");
+        }
+
+        try {
+            if (coef.getRowsCount() > DIMENSION_THRESHOLD) {
+                InverseResult inverseRes = Inverse.inverseAugment(coef);
+                Matrix solution =  MatrixOperator.matrixMultiplication(inverseRes.matrix, constantM);
+                return new SPLResult(solution, "Langkah-langkah tidak ditampilkan untuk Metode Invers pada matriks besar.");
+            }
+
+            StringBuilder steps = new StringBuilder("Menyelesaikan SPL dengan Metode Matriks Balikan: X = A⁻¹ * B\n\n");
+            steps.append("LANGKAH 1: Cari matriks balikan (A⁻¹).\n");
+
+            InverseResult inverseResult = Inverse.inverseAugment(coef);
+            steps.append(inverseResult.steps);
+            Matrix inverseRes = inverseResult.matrix;
+
+            steps.append("\nLANGKAH 2: Kalikan A⁻¹ dengan B untuk mendapatkan X.\n");
+            steps.append("X = A⁻¹ * B\n").append(inverseRes).append("\n   *\n").append(constantM).append("\n");
+
+            Matrix solution = MatrixOperator.matrixMultiplication(inverseRes, constantM);
+            steps.append("   =\n").append(solution);
+            return new SPLResult(solution, steps.toString());
+
+        } catch (IllegalArgumentException error) {
+            return new SPLResult(null, error.getMessage());
+        }
+    }
+    /*'***********************************************************************'*/
+    /*'                                                                       '*/
+    /*                               helpers                                   */
+    /*'                                                                       '*/
+    /*'***********************************************************************'*/
+    public static SPLResult echelonFormWithSteps(Matrix augmented) {
+        StringBuilder steps = new StringBuilder();
         Matrix m = augmented.copyMatrix();
-        StringBuilder sb = new StringBuilder();
-        int stepCount = 1;
+        int rowCount = m.getRowsCount();
+        int colCount = m.getColsCount();
+        int pivotRow = 0;
+        for (int pivotCol = 0; pivotCol < colCount - 1 && pivotRow < rowCount; pivotCol++) {
+            int nonZero = pivotRow;
+            while (nonZero < rowCount && Math.abs(m.getElmt(nonZero, pivotCol)) < 1e-9) nonZero++;
+            if (nonZero == rowCount) continue;
+            if (nonZero != pivotRow) {
+                steps.append(String.format("-> Tukar B%d dengan B%d\n", pivotRow + 1, nonZero + 1));
+                m.swapRow(pivotRow, nonZero);
+            }
+            double pivotVal = m.getElmt(pivotRow, pivotCol);
+            if (Math.abs(pivotVal - 1.0) > 1e-9) {
+                steps.append(String.format("-> B%d = B%d / %.4f\n", pivotRow + 1, pivotRow + 1, pivotVal));
+                m.scaleRow(pivotRow, 1.0 / pivotVal);
+            }
+            for (int i = pivotRow + 1; i < rowCount; i++) {
+                double factor = m.getElmt(i, pivotCol);
+                if (Math.abs(factor) > 1e-9) {
+                    steps.append(String.format("-> B%d = B%d - (%.4f * B%d)\n", i + 1, i + 1, factor, pivotRow + 1));
+                    m.addRowMultiple(i, pivotRow, -factor);
+                }
+            }
+            steps.append("Matriks setelah proses di kolom pivot ").append(pivotCol + 1).append(":\n").append(m).append("\n\n");
+            pivotRow++;
+        }
+        steps.append("Bentuk Eselon Baris tercapai.\n");
+        return new SPLResult(m, steps.toString());
+    }
+
+    public static SPLResult reducedEchelonFormWithSteps(Matrix m){
+        StringBuilder steps = new StringBuilder("Mengubah ke Bentuk Eselon Baris Tereduksi (RREF):\n");
+        Matrix m1 = m.copyMatrix();
+        steps.append("Matriks Awal:\n").append(m1).append("\n\n");
+        int rowCount = m1.getRowsCount();
+        int colCount = m1.getColsCount();
+
+        int lead = 0;
+        for(int r = 0; r < rowCount; r++){
+            if (lead >= colCount){
+                break;
+            }
+            int pivotRow = r;
+
+            while (pivotRow < rowCount && m1.getElmt(pivotRow, lead) == 0){
+                pivotRow++;
+            }
+            if (pivotRow == rowCount){
+                lead++;
+                r--;
+                continue;
+            }
+            if (pivotRow != r){
+                steps.append(String.format("-> Tukar B%d dengan B%d\n", r + 1, pivotRow + 1));
+                m1.swapRow(r, pivotRow);
+            }
+            // normalisasi pivot jadi 1
+            double pivotVal = m1.getElmt(r, lead);
+            if (pivotVal != 0 && pivotVal != 1){
+                steps.append(String.format("-> B%d = B%d / %.4f\n", r + 1, r + 1, pivotVal));
+                m1.scaleRow(r, 1.0/pivotVal);
+            }
+
+            for (int i = r+1; i < rowCount; i++){
+                double factor = m1.getElmt(i, lead);
+                if (factor != 0){
+                    steps.append(String.format("-> B%d = B%d - (%.4f * B%d)\n", i + 1, i + 1, factor, r + 1));
+                    m1.addRowMultiple(i, r, -1 * factor);
+                }
+            }
+            steps.append("Matriks setelah proses di kolom pivot ").append(lead + 1).append(":\n").append(m1).append("\n\n");
+            lead++;
+        }
+
+        steps.append("\nMemulai fase eliminasi ke atas (Back Substitution):\n");
+        for (int i = rowCount - 1; i >= 0; i--) {
+            lead = -1;
+            for (int j = 0; j < colCount; j++) {
+                if (Math.abs(m1.getElmt(i, j)) > 1e-9) {
+                    lead = j;
+                    break;
+                }
+            }
+
+            if (lead != -1) {
+                for (int r = i - 1; r >= 0; r--) {
+                    double factor = m1.getElmt(r, lead);
+                    if (Math.abs(factor) > 1e-9) {
+                        steps.append(String.format("-> B%d = B%d - (%.4f * B%d)\n", r + 1, r + 1, factor, i + 1));
+                        m1.addRowMultiple(r, i, -factor);
+                    }
+                }
+            }
+        }
+        steps.append("Matriks setelah eliminasi ke atas:\n").append(m1).append("\n\n");
+        steps.append("Bentuk Eselon Baris Tereduksi (RREF) akhir tercapai.\n");
+        return new SPLResult(m1, steps.toString());
+    }
+    public static Matrix gaussWithoutSteps(Matrix augmented) {
+        Matrix m = augmented.copyMatrix();
 
         int rowCount = m.getRowsCount();
         int colCount = m.getColsCount();
@@ -39,15 +287,8 @@ public class SPL {
                 continue;
             }
 
-            // swap baris
             if (nonZero != pivotRow) {
                 m.swapRow(pivotRow, nonZero);
-                sb.append(stepCount++)
-                .append(". Swap baris ")
-                .append(pivotRow + 1)
-                .append(" dan ")
-                .append(nonZero + 1)
-                .append("\n");
             }
 
             double pivotVal = m.getElmt(pivotRow, pivotCol);
@@ -63,109 +304,31 @@ public class SPL {
         Matrix A = m.removeLastCol();  // [A | b]
         double[] b = m.getCol(colCount - 1);
 
-        Matrix solution = backSubstitute(A, b);
-        return new GaussResult(solution, sb.toString());
+        return backSubstitute(A, b);
     }
 
-
-    /*
-     * return solutions of a linear equation system
-     * with Gauss-Jordan elimination method
-     */
-    public static Matrix gaussJordan(Matrix augmented){
+    private static Matrix gaussJordanWithoutSteps(Matrix augmented){
         Matrix m = augmented.copyMatrix();
-        m = reducedEchelonForm(m);
+        m = reducedEchelonFormWithoutSteps(m);
 
         Matrix a = m.removeLastCol();
         double[] b = m.getCol(m.getColsCount() - 1);
 
         if(checkNoSolution(a, b)){
             // Jika tidak ada solusi, kembalikan null
-            System.out.println("Tidak ada solusi.");
+//            System.out.println("Tidak ada solusi.");
             return null;
         } else if (checkUniqueSolution(a, b)){
             // Jika solusi unik, langsung hitung dengan substitusi balik
-            System.out.println("Solusi unik ditemukan.");
+//            System.out.println("Solusi unik ditemukan.");
             return backSubstitute(a,b);
         } else {
             // Jika tidak keduanya, berarti solusi banyak.
             // Panggil fungsi untuk membuat matriks parametrik.
-            System.out.println("Terdapat banyak solusi (solusi parametrik).");
+//            System.out.println("Terdapat banyak solusi (solusi parametrik).");
             return getParametricSolution(a, b);
         }
     }
-
-    /*
-     * return solutions of a linear equation system using cramer method
-     * Ax = b
-     *
-     */
-    public static Matrix cramer(Matrix coeffMatrix, Matrix constMatrix) {
-        // calculate the determinant of coeffMatrix
-//        double coeffMatDet = MatrixOperator.detCofactor(coeffMatrix);
-        double coeffMatDet = Determinant.detCofactor(coeffMatrix);
-        if (coeffMatDet == 0) {
-            throw new IllegalArgumentException("Det == 0, cramer's method couldn't be applied");
-        }
-
-        // apply cramer's rule
-        int constMatrixRow = constMatrix.getRowsCount();
-        Matrix determinants = new Matrix(constMatrixRow, 1);
-        for (int i = 0; i < constMatrixRow; i++) {
-            Matrix replacedCol = coeffMatrix.replaceCol(i, constMatrix);
-//            determinants.setElmt(i, 0, MatrixOperator.detCofactor(replacedCol));
-            determinants.setElmt(i, 0, Determinant.detCofactor(replacedCol));
-        }
-        // look for each
-        return MatrixOperator.scalarDivision(determinants, coeffMatDet);
-    }
-
-    public static class InverseMethodResult {
-        public Matrix solution;
-        public String steps;
-
-        public InverseMethodResult(Matrix solution, String steps) {
-            this.solution = solution;
-            this.steps = steps;
-        }
-    }
-
-    public static InverseMethodResult inverseMethod(Matrix coef, Matrix constantM) {
-        if (coef.getRowsCount() != coef.getColsCount()) {
-            throw new IllegalArgumentException("Matrix A harus persegi");
-        }
-
-        StringBuilder sb = new StringBuilder();
-
-        double det = Determinant.detCofactor(coef);
-        sb.append("1. Hitung determinan A = ").append(det).append("\n");
-
-        if (det == 0) {
-            throw new IllegalArgumentException("Matrix A tidak ada invers (det = 0)");
-        }
-
-        // Matrix inverseA = Matrix.inverse(coef);
-        Matrix inverseA = Inverse.inverseAugment(coef);
-        sb.append("2. Cari invers matriks A dengan Gauss-Jordan\n");
-
-        Matrix solution = MatrixOperator.matrixMultiplication(inverseA, constantM);
-        sb.append("3. Hitung solusi A^(-1) * b\n");
-
-
-        // TODO: ini solusi boleh diapus
-        sb.append("4. Solusi SPL:\n");
-        for (int i = 0; i < solution.getRowsCount(); i++) {
-            sb.append("   x").append(i + 1).append(" = ").append(solution.getElmt(i, 0)).append("\n");
-        }
-
-        return new InverseMethodResult(solution, sb.toString());
-    
-    }
-    /*'***********************************************************************'*/
-    /*'                                                                       '*/
-    /*                               helpers                                   */
-    /*'                                                                       '*/
-    /*'***********************************************************************'*/
 
     /*
      * Membangun matriks yang merepresentasikan solusi parametrik untuk sistem
@@ -260,7 +423,7 @@ public class SPL {
      *  [ 2 3  0] -> [0 1  2]
      *  [ 3 5  1]    [0 0  0]
      */
-    public static Matrix reducedEchelonForm(Matrix m){
+    public static Matrix reducedEchelonFormWithoutSteps(Matrix m){
         Matrix m1 = m.copyMatrix();
         int rowCount = m1.getRowsCount();
         int colCount = m1.getColsCount();

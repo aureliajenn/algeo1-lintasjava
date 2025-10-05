@@ -12,7 +12,7 @@ public class Regression {
         Matrix Xt = X.transpose();
         Matrix XtX = MatrixOperator.matrixMultiplication(Xt, X);
 
-        Matrix invM = Inverse.inverseAugment(XtX);
+        Matrix invM = Inverse.inverseAugment(XtX).matrix;
         Matrix Xty = MatrixOperator.matrixMultiplication(Xt, y);
 
         Matrix hasil = MatrixOperator.matrixMultiplication(invM, Xty);
