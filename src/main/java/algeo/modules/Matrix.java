@@ -1,7 +1,7 @@
 package algeo.modules;
 
 import java.util.Arrays;
-
+import java.util.Formatter;
 public class Matrix {
     private final int rows;
     private final int cols;
@@ -150,7 +150,7 @@ public class Matrix {
         Matrix transposed = new Matrix(cols, rows);
         for (int i = 0; i < cols; i++) {
             for (int j = 0; j < rows; j++) {
-                transposed.setElmt(i, j, getElmt(j,i));
+                transposed.setElmt(i, j, getElmt(j, i));
             }
         }
         return transposed;
@@ -170,19 +170,19 @@ public class Matrix {
             throw new IllegalArgumentException("Index baris dan/atau kolom salah.");
         }
 
-        Matrix removedRowColMatrix = new Matrix(rows-1, cols-1);
+        Matrix removedRowColMatrix = new Matrix(rows - 1, cols - 1);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                if (i == row || j == col){
+                if (i == row || j == col) {
                     continue;
-                } else if (i < row && j < col){
-                    removedRowColMatrix.setElmt(i,j,data[i][j]);
-                } else if (i < row && j > col){
-                    removedRowColMatrix.setElmt(i,j-1, data[i][j]);
-                } else if (i > row && j < col){
-                    removedRowColMatrix.setElmt(i-1,j, data[i][j]);
-                } else if (i > row && j > col){
-                    removedRowColMatrix.setElmt(i-1,j-1, data[i][j]);
+                } else if (i < row && j < col) {
+                    removedRowColMatrix.setElmt(i, j, data[i][j]);
+                } else if (i < row && j > col) {
+                    removedRowColMatrix.setElmt(i, j - 1, data[i][j]);
+                } else if (i > row && j < col) {
+                    removedRowColMatrix.setElmt(i - 1, j, data[i][j]);
+                } else if (i > row && j > col) {
+                    removedRowColMatrix.setElmt(i - 1, j - 1, data[i][j]);
                 }
             }
         }
@@ -197,6 +197,23 @@ public class Matrix {
             }
         }
         return result;
+    }
+
+    //Overrides the default toString method
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        Formatter formatter = new Formatter(sb);
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                formatter.format("%12.4f", data[i][j]);
+            }
+            if (i < rows - 1) {
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
     }
 
     // join two matrices horizontally (not necessarily an augmented [A|b] form)
@@ -227,26 +244,29 @@ public class Matrix {
 
         return augmented;
     }
-//    public Matrix inverseAugment() {
-//        if (!isSquare()) {
-//            throw new IllegalArgumentException("Matriks harus persegi");
-//        }
-//
-//        int n = getRowsCount();
-//
-//        // buat matriks [A | I]
-//        Matrix I = Matrix.identity(n);
-//        Matrix augmented = Matrix.augment(copyMatrix(), I);
-//
-//        Matrix reduced = SPL.reducedEchelonForm(augmented);
-//
-//        Matrix inverse = new Matrix(n, n);
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < n; j++) {
-//                inverse.setElmt(i, j, reduced.getElmt(i, j + n));
-//            }
-//        }
-//
-//        return inverse;
-//    }
+
+    public Matrix subMatrix(int startRow, int endRow, int startCol, int endCol) {
+        if (startRow < 0 || endRow >= rows || startCol < 0 || endCol >= cols) {
+            throw new IllegalArgumentException("Indeks submatrix berada di luar batas.");
+        }
+        if (startRow > endRow || startCol > endCol) {
+            throw new IllegalArgumentException("Indeks awal tidak boleh lebih besar dari indeks akhir.");
+        }
+
+        // Matrix baru
+        int newRows = endRow - startRow + 1;
+        int newCols = endCol - startCol + 1;
+        Matrix result = new Matrix(newRows, newCols);
+
+        // Copy yang perlu
+        for (int i = 0; i < newRows; i++) {
+            for (int j = 0; j < newCols; j++) {
+                double value = data[startRow + i][startCol + j];
+                result.setElmt(i, j, value);
+            }
+        }
+
+        return result;
+    }
+
 }

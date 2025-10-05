@@ -4,7 +4,7 @@ import algeo.modules.SPL;
 
 public class Interpolation {
     public static Matrix polynomialInterpolation(Matrix points) {
-        int length = points.getRowsCount() + 1;
+        int length = points.getRowsCount();
         Matrix augmented = new Matrix(length, length + 1);
 
         for (int i = 0; i < length; i++) {
@@ -15,7 +15,7 @@ public class Interpolation {
             }
             augmented.setElmt(i, length, yi);
         }
-        return SPL.gauss(augmented);
+        return SPL.gaussJordan(augmented).solution;
     }
 
     public static Matrix[] interpolasiSplinaBezierKubik(Matrix points) {
@@ -64,8 +64,8 @@ public class Interpolation {
         }
 
         // solve spl pakai gauss
-        Matrix Dx = SPL.gauss(Abx);
-        Matrix Dy = SPL.gauss(Aby);
+        Matrix Dx = SPL.gauss(Abx).solution;
+        Matrix Dy = SPL.gauss(Aby).solution;
 
         // bezier segments
         Matrix[] result = new Matrix[n];
