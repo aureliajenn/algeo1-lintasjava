@@ -1,12 +1,12 @@
 package algeo.gui;
 
+import algeo.modules.Matrix;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-import algeo.modules.Matrix;
-
-public class Controller {
+public class FileHandler {
     public static RegressionInput parseRegresi(String filename) throws FileNotFoundException {
         Scanner sc = new Scanner(new File(filename));
         int rowCount = 0;
