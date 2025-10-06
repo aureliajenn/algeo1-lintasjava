@@ -1,10 +1,6 @@
 package algeo.modules;
-import algeo.modules.Matrix;
-import algeo.modules.MatrixOperator;
-import algeo.modules.Determinant;
-import algeo.modules.Inverse;
-import algeo.modules.SPLResult;
-import java.util.Formatter;
+
+
 public class SPL {
     private static final int DIMENSION_THRESHOLD  = 11;
 
@@ -25,23 +21,38 @@ public class SPL {
         }
 
         StringBuilder steps = new StringBuilder("Menyelesaikan SPL dengan Eliminasi Gauss:\n\n");
+        steps.append("LANGKAH 1: Mengubah matriks ke bentuk Eselon Baris (Row Echelon Form).\n");
         SPLResult echelonResult = echelonFormWithSteps(augmented);
         steps.append(echelonResult.steps);
         Matrix m = echelonResult.solution;
 
-        steps.append("\nLANGKAH 2: Melakukan substitusi balik untuk menemukan solusi.\n");
+        steps.append("\nLANGKAH 2: Menganalisis hasil matriks eselon baris dan melakukan substitusi balik.\n");
 
-        Matrix a = m.removeLastCol();  // [a | b]
+        Matrix a = m.removeLastCol();
         double[] b = m.getCol(m.getColsCount() - 1);
 
+        // ================== BAGIAN LOGIKA YANG DIPERBAIKI ==================
         if (checkNoSolution(a, b)) {
             steps.append("-> Ditemukan baris [0 0 ... | c] dengan c != 0. SPL tidak memiliki solusi.\n");
             return new SPLResult(null, steps.toString());
-        }
+        } else if (checkUniqueSolution(a, b)) {
+            steps.append("-> Setiap variabel adalah variabel pivot. SPL memiliki solusi unik.\n");
+            Matrix solution = backSubstitute(a, b);
+            steps.append("Solusi unik yang ditemukan:\n").append(solution);
+            return new SPLResult(solution, steps.toString());
+        } else {
+            steps.append("-> Terdapat variabel bebas. SPL memiliki banyak solusi (parametrik).\n");
+            // Meskipun sudah dalam bentuk eselon baris, kita perlu RREF untuk mengekstrak solusi parametrik dengan mudah.
+            // Kita lakukan RREF tanpa mencatat langkahnya karena esensinya sama.
+            Matrix rrefMatrix = reducedEchelonFormWithoutSteps(m);
+            Matrix rrefA = rrefMatrix.removeLastCol();
+            double[] rrefB = rrefMatrix.getCol(rrefMatrix.getColsCount() - 1);
 
-        Matrix solution = backSubstitute(a, b);
-        steps.append("Solusi akhir yang ditemukan:\n").append(solution);
-        return new SPLResult(solution, steps.toString());
+            Matrix solution = getParametricSolution(rrefA, rrefB);
+            steps.append("Solusi Parametrik (kolom pertama adalah konstanta, kolom berikutnya adalah parameter):\n").append(solution);
+            return new SPLResult(solution, steps.toString());
+        }
+        // =================================================================
     }
 
 
