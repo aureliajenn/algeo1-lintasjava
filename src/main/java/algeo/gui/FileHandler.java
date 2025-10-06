@@ -1,4 +1,4 @@
-package algeo;
+package algeo.gui;
 
 import java.io.File;
 import java.io.FileNotFoundException;

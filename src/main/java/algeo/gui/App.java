@@ -1,4 +1,4 @@
-package algeo;
+package algeo.gui;
 
 import algeo.modules.*;
 
