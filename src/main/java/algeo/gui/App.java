@@ -1,6 +1,5 @@
-package algeo;
+package algeo.gui;
 
-import algeo.gui.UIController;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
