@@ -1,8 +1,4 @@
 package algeo.modules;
-import algeo.modules.Matrix;
-import algeo.modules.MatrixOperator;
-import algeo.modules.Inverse;
-import algeo.modules.Determinant;
 
 public class Regression {
 
