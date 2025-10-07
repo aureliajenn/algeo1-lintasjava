@@ -1,6 +1,5 @@
 package algeo.modules;
 
-import algeo.modules.Matrix;
 public class InverseResult {
     public final Matrix matrix;
     public final String steps;
