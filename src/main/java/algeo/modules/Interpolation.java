@@ -1,6 +1,4 @@
 package algeo.modules;
-import algeo.modules.Matrix;
-import algeo.modules.SPL;
 
 public class Interpolation {
     public static Matrix polynomialInterpolation(Matrix points) {

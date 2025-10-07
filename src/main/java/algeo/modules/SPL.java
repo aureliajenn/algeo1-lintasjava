@@ -1,6 +1,5 @@
 package algeo.modules;
 
-
 public class SPL {
     private static final int DIMENSION_THRESHOLD  = 11;
 
@@ -417,16 +416,16 @@ public class SPL {
         return m1;
     }
 
-    public static Matrix zeroAbovePivot(Matrix m, int pivotRow, int pivotCol){
-        Matrix m1 = m.copyMatrix();
-        for(int i = pivotRow - 1; i >= 0; i--){
-            double factor = m1.getElmt(i, pivotCol);
-            if (factor != 0){
-                m1.addRowMultiple(i, pivotRow, -1 * factor);
-            }
-        }
-        return m1;
-    }
+//    public static Matrix zeroAbovePivot(Matrix m, int pivotRow, int pivotCol){
+//        Matrix m1 = m.copyMatrix();
+//        for(int i = pivotRow - 1; i >= 0; i--){
+//            double factor = m1.getElmt(i, pivotCol);
+//            if (factor != 0){
+//                m1.addRowMultiple(i, pivotRow, -1 * factor);
+//            }
+//        }
+//        return m1;
+//    }
 
     /*
      * transforms the given matrix into its Reduced Row Echelon Form
@@ -504,23 +503,23 @@ public class SPL {
         return -1;
     }
 
-    /*
-     * arrange the rows so that the leading one arrangement
-     * is in accordance with the requirements of the echelon matrix
-     */
-    private static Matrix adjustLeadingOneRow(Matrix m){
-        Matrix m1 = m.copyMatrix();
-        for(int i = m1.getRowsCount()-1; i >= 0; i--){
-            int idx = idxNotZero(m1.getRow(i));
-            if(idx == -1){
-                continue;
-            }
-            if (i != idx){
-                m1.swapRow(i,idx);
-            }
-        }
-        return m1;
-    }
+//    /*
+//     * arrange the rows so that the leading one arrangement
+//     * is in accordance with the requirements of the echelon matrix
+//     */
+//    private static Matrix adjustLeadingOneRow(Matrix m){
+//        Matrix m1 = m.copyMatrix();
+//        for(int i = m1.getRowsCount()-1; i >= 0; i--){
+//            int idx = idxNotZero(m1.getRow(i));
+//            if(idx == -1){
+//                continue;
+//            }
+//            if (i != idx){
+//                m1.swapRow(i,idx);
+//            }
+//        }
+//        return m1;
+//    }
 
     /*
      * Checks if the linear equation system has no solution.

@@ -1,11 +1,5 @@
 package algeo.modules;
-import algeo.modules.Matrix;
-import algeo.modules.MatrixOperator;
-import algeo.modules.SPL;
-import algeo.modules.InverseResult;
-import algeo.modules.Determinant;
-import java.util.Formatter;
-import algeo.modules.CofactorResult;
+
 public class Inverse {
     private static final int DIMENSION_THRESHOLD  = 11;
     public static InverseResult inverseAugment(Matrix a) {
