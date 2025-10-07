@@ -79,17 +79,21 @@ public class InterpolationController {
     }
 
     private String formatBezierResult(Matrix[] segments) {
-        StringBuilder sb = new StringBuilder("Kurva Spline Bezier Kubik ditemukan:\n");
+        StringBuilder sb = new StringBuilder("Titik-titik Kontrol Kurva Splina Bezier Kubik:\n");
         sb.append("------------------------------------------\n");
-        for (int i = 0; i < segments.length; i++) {
-            sb.append("Segmen ").append(i + 1).append(" (antara P").append(i).append(" dan P").append(i+1).append("):\n");
-            Matrix controlPoints = segments[i];
+
+        int pointCtr = 1;
+
+        // Iterasi melalui setiap segmen
+        for (Matrix controlPoints : segments) {
             for (int j = 0; j < controlPoints.getRowsCount(); j++) {
-                sb.append(String.format("  Titik Kontrol %d: (%.4f, %.4f)\n", j,
+                sb.append(String.format("  Titik Kontrol %d: (%.4f, %.4f)\n", pointCtr,
                         controlPoints.getElmt(j, 0), controlPoints.getElmt(j, 1)));
+                pointCtr++;
             }
-            sb.append("------------------------------------------\n");
         }
+
+        sb.append("------------------------------------------\n");
         return sb.toString();
     }
 }
