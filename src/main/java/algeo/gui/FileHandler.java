@@ -58,6 +58,21 @@ public class FileHandler {
         throw new IllegalArgumentException("File input regresi tidak valid");
     }
 
+    private static double parseNumber(String token) {
+        token = token.trim().replace(',', '.');
+        if (token.contains("/")) {
+            String[] frac = token.split("/");
+            if (frac.length == 2) {
+                double numerator = Double.parseDouble(frac[0]);
+                double denominator = Double.parseDouble(frac[1]);
+                return numerator / denominator;
+            } else {
+                throw new NumberFormatException("Format pecahan tidak valid: " + token);
+            }
+        }
+        return Double.parseDouble(token);
+    }
+
 
     public static Matrix readMatrix(String filename) throws FileNotFoundException {
         File file = new File(filename);
@@ -90,7 +105,7 @@ public class FileHandler {
 
             String[] parts = line.split("\\s+");
             for (int i = 0; i < colCount; i++) {
-                arr[rowIndex][i] = Double.parseDouble(parts[i].replace(',', '.'));
+                arr[rowIndex][i] = parseNumber(parts[i]);
             }
             rowIndex++;
         }
@@ -103,7 +118,7 @@ public class FileHandler {
         String[] parts = line.split("\\s+");
         double[] row = new double[parts.length];
         for (int i = 0; i < parts.length; i++) {
-            row[i] = Double.parseDouble(parts[i].replace(',', '.'));
+            row[i] = parseNumber(parts[i]);
         }
         return row;
     }
