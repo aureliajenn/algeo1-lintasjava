@@ -2,7 +2,15 @@ package algeo.modules;
 
 public class Determinant {
     private static final int DIMENSION_THRESHOLD = 11;
-
+    /*
+     * Menghitung determinan matriks dengan metode ekspansi kofaktor.
+     * Behaviors :
+     * 1. dimensi matrix <= DIMENSION_THRESHOLD, langkah-langkah akan dicatat.
+     * 2. dimensi matrix > DIMENSION_THRESHOLD, langkah-langkah tidak akan dicatat.
+     *
+     * @param a Matriks persegi yang akan dihitung determinannya.
+     * @return DeterminantResult object yang berisi nilai determinan dan langkah-langkahnya.
+     */
     public static DeterminantResult detCofactor (Matrix a) {
         if (!a.isSquare()) {
             throw new IllegalStateException("Determinan hanya bisa dihitung dari matriks persegi.");
@@ -25,6 +33,15 @@ public class Determinant {
         return new DeterminantResult(result, steps.toString());
     }
 
+    /*
+     * Fungsi rekursif pembantu untuk metode ekspansi kofaktor.
+     * Menghitung determinan sub-matriks dan secara opsional mencatat langkah.
+     *
+     * @param a     Matriks atau sub-matriks yang sedang diproses dalam langkah rekursi.
+     * @param depth Tingkat kedalaman rekursi, digunakan untuk mengatur indentasi pada teks langkah.
+     * @param steps StringBuilder untuk menampung string langkah. Bernilai null jika langkah tidak dicatat.
+     * @return nilai determinan dari matriks input (bertipe double).
+     */
     private static double detCofactorHelper(Matrix a, int depth, StringBuilder steps) {
         String indentation = "  ".repeat(depth);
         int n = a.getRowsCount();
@@ -72,6 +89,15 @@ public class Determinant {
         return det;
     }
 
+    /*
+     * Menghitung determinan matriks dengan metode reduksi baris.
+     * Behaviors :
+     * 1. dimensi matrix <= DIMENSION_THRESHOLD, langkah-langkah OBE akan dicatat.
+     * 2. dimensi matrix > DIMENSION_THRESHOLD, langkah-langkah tidak akan dicatat.
+     *
+     * @param a Matriks persegi yang akan dihitung determinannya.
+     * @return DeterminantResult object yang berisi nilai determinan dan langkah-langkahnya.
+     */
     public static DeterminantResult detReduksiBaris(Matrix a) {
         if (!a.isSquare()) {
             throw new IllegalStateException("Determinan hanya bisa dihitung dari matriks persegi.");
@@ -127,6 +153,13 @@ public class Determinant {
         return new DeterminantResult(determinant, steps.toString());
     }
 
+    /*
+     * Fungsi pembantu untuk metode reduksi baris tanpa pencatatan langkah.
+     * Digunakan untuk efisiensi pada matriks berdimensi besar.
+     *
+     * @param a Matriks persegi yang akan dihitung determinannya.
+     * @return nilai determinan dari matriks input (bertipe double).
+     */
     private static double detReduksiBarisWithoutSteps(Matrix a) {
         if (!a.isSquare()) {
             throw new IllegalStateException("Determinan hanya bisa dihitung dari matriks persegi.");
