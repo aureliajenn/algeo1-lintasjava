@@ -28,7 +28,7 @@ public class Determinant {
         double result = detCofactorHelper(a, 0, steps);
 
         steps.append("\n========================================\n");
-        steps.append("Total Determinan Akhir = ").append(String.format("%.8f", result)).append("\n");
+        steps.append("Total Determinan Akhir = ").append(String.format("%.3f", result)).append("\n");
 
         return new DeterminantResult(result, steps.toString());
     }
@@ -53,8 +53,7 @@ public class Determinant {
         if (n == 1) {
             double val = a.getElmt(0, 0);
             if (steps != null) {
-                // PERUBAHAN DI SINI: dari .4f menjadi .8f
-                steps.append(indentation).append("   Hasil = ").append(String.format("%.8f", val)).append("\n");
+                steps.append(indentation).append("   Hasil = ").append(String.format("%.3f", val)).append("\n");
             }
             return val;
         }
@@ -62,7 +61,7 @@ public class Determinant {
         if (n == 2) {
             double val = a.getElmt(0, 0) * a.getElmt(1, 1) - a.getElmt(0, 1) * a.getElmt(1, 0);
             if (steps != null) {
-                steps.append(indentation).append(String.format("   det = (%.4f * %.4f) - (%.4f * %.4f) = %.8f\n",
+                steps.append(indentation).append(String.format("   det = (%.3f * %.3f) - (%.3f * %.3f) = %.3f\n",
                         a.getElmt(0, 0), a.getElmt(1, 1), a.getElmt(0, 1), a.getElmt(1, 0), val));
             }
             return val;
@@ -72,7 +71,7 @@ public class Determinant {
         if (steps != null) {
             StringBuilder formula = new StringBuilder(indentation + "   det = ");
             for(int j = 0; j < n; j++){
-                formula.append(String.format("%s (%.2f * C%d%d) ", (j > 0 ? "+ " : ""), a.getElmt(0,j), 1, j+1));
+                formula.append(String.format("%s (%.3f * C%d%d) ", (j > 0 ? "+ " : ""), a.getElmt(0,j), 1, j+1));
             }
             steps.append(formula.toString()).append("\n");
         }
@@ -84,7 +83,7 @@ public class Determinant {
         }
 
         if (steps != null) {
-            steps.append(indentation).append("   Hasil determinan level ini = ").append(String.format("%.8f", det)).append("\n");
+            steps.append(indentation).append("   Hasil determinan level ini = ").append(String.format("%.3f", det)).append("\n");
         }
         return det;
     }
@@ -128,7 +127,7 @@ public class Determinant {
             for (int j = i + 1; j < n; j++) {
                 if (m.getElmt(j, i) != 0) {
                     double factor = m.getElmt(j, i) / pivotVal;
-                    steps.append(String.format("-> B%d = B%d - (%.4f * B%d)\n", j + 1, j + 1, factor, i + 1));
+                    steps.append(String.format("-> B%d = B%d - (%.3f * B%d)\n", j + 1, j + 1, factor, i + 1));
                     m.addRowMultiple(j, i, -factor);
                 }
             }
@@ -141,14 +140,14 @@ public class Determinant {
         for (int i = 0; i < n; i++) {
             double diagonalElmt = m.getElmt(i, i);
             determinant *= diagonalElmt;
-            calculation.append(String.format("%.4f", diagonalElmt)).append(i < n - 1 ? " * " : "");
+            calculation.append(String.format("%.3f", diagonalElmt)).append(i < n - 1 ? " * " : "");
         }
         steps.append("Determinan = perkalian elemen diagonal\n");
-        steps.append("= ").append(calculation).append(" = ").append(String.format("%.8f", determinant)).append("\n"); // Diubah ke .8f
+        steps.append("= ").append(calculation).append(" = ").append(String.format("%.3f", determinant)).append("\n");
         if (swapCount > 0 && swapCount % 2 == 1) {
             determinant *= -1;
             steps.append("Karena jumlah pertukaran baris ganjil (").append(swapCount).append("), hasil dikali -1.\n");
-            steps.append("Determinan akhir = ").append(String.format("%.8f", determinant)).append("\n"); // Diubah ke .8f
+            steps.append("Determinan akhir = ").append(String.format("%.3f", determinant)).append("\n");
         }
         return new DeterminantResult(determinant, steps.toString());
     }

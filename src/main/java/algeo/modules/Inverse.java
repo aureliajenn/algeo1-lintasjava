@@ -104,7 +104,7 @@ public class Inverse {
 
         StringBuilder steps = new StringBuilder("Menghitung invers metode Adjoin: A⁻¹ = (1/det(A)) * Adj(A)\n\n");
         steps.append("LANGKAH 1: Menghitung determinan matriks A...\n");
-        steps.append("Hasil: det(A) = ").append(String.format("%.4f", determinant.value)).append("\n\n");
+        steps.append("Hasil: det(A) = ").append(String.format("%.3f", determinant.value)).append("\n\n");
 
         steps.append("LANGKAH 2: Membentuk matriks Adjoin (Adj(A) = Cᵀ).\n");
         CofactorResult cofactorRes = cofactorMatrix(a);
@@ -155,7 +155,7 @@ public class Inverse {
                 Matrix r = a.removeRowColMatrix(i,j);
                 double minorDetValue = Determinant.detReduksiBaris(r).value;
                 double cofactor = Math.pow(-1 , (i + j)) * minorDetValue;
-                steps.append(String.format("  -> det(Minor) = %.4f -> Kofaktor = %.4f\n", minorDetValue, cofactor));
+                steps.append(String.format("  -> det(Minor) = %.3f -> Kofaktor = %.3f\n", minorDetValue, cofactor));
                 result.setElmt(i,j,cofactor);
             }
         }

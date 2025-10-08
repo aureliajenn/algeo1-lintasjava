@@ -21,7 +21,7 @@ public class FormatResult {
         if (numCols == 1) {
             sb.append("Solusi unik ditemukan:\n");
             for (int i = 0; i < numVariables; i++) {
-                sb.append(String.format(Locale.US, "x%d = %.4f\n", i + 1, solutionMatrix.getElmt(i, 0)));
+                sb.append(String.format(Locale.US, "x%d = %.3f\n", i + 1, solutionMatrix.getElmt(i, 0)));
             }
         } else {
             sb.append("Terdapat banyak solusi (solusi parametrik):\n");
@@ -31,7 +31,7 @@ public class FormatResult {
                 double constant = solutionMatrix.getElmt(i, 0);
                 boolean isFirstTerm = true;
                 if (Math.abs(constant) > 1e-9 || numCols == 1) {
-                    sb.append(String.format(Locale.US, "%.4f", constant));
+                    sb.append(String.format(Locale.US, "%.3f", constant));
                     isFirstTerm = false;
                 }
                 for (int j = 1; j < numCols; j++) {
@@ -46,12 +46,12 @@ public class FormatResult {
                         isFirstTerm = false;
                         double absCoeff = Math.abs(coeff);
                         if (Math.abs(absCoeff - 1.0) > 1e-9) {
-                            sb.append(String.format(Locale.US, "%.4f", absCoeff));
+                            sb.append(String.format(Locale.US, "%.3f", absCoeff));
                         }
                         sb.append(paramName);
                     }
                 }
-                if (isFirstTerm) sb.append("0.0000");
+                if (isFirstTerm) sb.append("0.000");
                 sb.append("\n");
             }
         }
@@ -83,7 +83,7 @@ public class FormatResult {
             }
 
             if (Math.abs(absCoeff - 1.0) > 1e-9 || i == 0) {
-                sb.append(String.format(Locale.US, "%.4f", absCoeff));
+                sb.append(String.format(Locale.US, "%.3f", absCoeff));
             }
 
             if (i == 1) {
@@ -96,7 +96,7 @@ public class FormatResult {
         }
 
         if (isFirstTerm) {
-            sb.append("0.0000");
+            sb.append("0.000");
         }
 
         return sb.toString();
