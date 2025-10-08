@@ -30,7 +30,6 @@ public class SPL {
         Matrix a = m.removeLastCol();
         double[] b = m.getCol(m.getColsCount() - 1);
 
-        // ================== BAGIAN LOGIKA YANG DIPERBAIKI ==================
         if (checkNoSolution(a, b)) {
             steps.append("-> Ditemukan baris [0 0 ... | c] dengan c != 0. SPL tidak memiliki solusi.\n");
             return new SPLResult(null, steps.toString());
@@ -41,8 +40,6 @@ public class SPL {
             return new SPLResult(solution, steps.toString());
         } else {
             steps.append("-> Terdapat variabel bebas. SPL memiliki banyak solusi (parametrik).\n");
-            // Meskipun sudah dalam bentuk eselon baris, kita perlu RREF untuk mengekstrak solusi parametrik dengan mudah.
-            // Kita lakukan RREF tanpa mencatat langkahnya karena esensinya sama.
             Matrix rrefMatrix = reducedEchelonFormWithoutSteps(m);
             Matrix rrefA = rrefMatrix.removeLastCol();
             double[] rrefB = rrefMatrix.getCol(rrefMatrix.getColsCount() - 1);
@@ -51,7 +48,6 @@ public class SPL {
             steps.append("Solusi Parametrik (kolom pertama adalah konstanta, kolom berikutnya adalah parameter):\n").append(solution);
             return new SPLResult(solution, steps.toString());
         }
-        // =================================================================
     }
 
 
@@ -75,21 +71,14 @@ public class SPL {
         double[] b = m.getCol(m.getColsCount() - 1);
 
         if(checkNoSolution(a, b)){
-            // Jika tidak ada solusi, kembalikan null
-//            System.out.println("Tidak ada solusi.");
             steps.append("-> Ditemukan baris [0 0 ... | c] dengan c != 0. SPL tidak memiliki solusi.\n");
             return new SPLResult(null, steps.toString());
         } else if (checkUniqueSolution(a, b)){
-            // Jika solusi unik, langsung hitung dengan substitusi balik
-//            System.out.println("Solusi unik ditemukan.");
             steps.append("-> Setiap variabel adalah variabel pivot. SPL memiliki solusi unik.\n");
             Matrix solution = backSubstitute(a, b);
             steps.append("Solusi:\n").append(solution);
             return new SPLResult(solution, steps.toString());
         } else {
-            // Jika tidak keduanya, berarti solusi banyak.
-            // Panggil fungsi untuk membuat matriks parametrik.
-//            System.out.println("Terdapat banyak solusi (solusi parametrik).");
             steps.append("-> Terdapat variabel bebas. SPL memiliki banyak solusi (parametrik).\n");
             Matrix solution = getParametricSolution(a, b);
             steps.append("Solusi Parametrik (kolom pertama adalah konstanta, kolom berikutnya adalah parameter):\n").append(solution);
@@ -121,10 +110,9 @@ public class SPL {
             return new SPLResult(solution, "Langkah-langkah tidak ditampilkan untuk Kaidah Cramer pada matriks besar.");
         }
 
-        // Versi lengkap dengan langkah-langkah untuk matriks kecil
         StringBuilder steps = new StringBuilder("Menyelesaikan SPL dengan Kaidah Cramer: xi = det(Ai) / det(A)\n\n");
         steps.append("LANGKAH 1: Menghitung determinan matriks koefisien (A)...\n");
-        steps.append("Hasil: det(A) = ").append(String.format("%.4f", coeffMatDet)).append("\n\n");
+        steps.append("Hasil: det(A) = ").append(String.format("%.3f", coeffMatDet)).append("\n\n");
 
 
         // apply cramer's rule
@@ -135,8 +123,8 @@ public class SPL {
             Matrix replacedCol = coeffMatrix.replaceCol(i, constMatrix);
             steps.append("Matriks A").append(i + 1).append(" (kolom ").append(i + 1).append(" diganti):\n").append(replacedCol).append("\n");
 
-            double determinant = Determinant.detReduksiBaris(replacedCol).value; // Langsung ambil nilainya
-            steps.append("Hasil: det(A").append(i + 1).append(") = ").append(String.format("%.4f", determinant)).append("\n\n");
+            double determinant = Determinant.detReduksiBaris(replacedCol).value;
+            steps.append("Hasil: det(A").append(i + 1).append(") = ").append(String.format("%.3f", determinant)).append("\n\n");
             determinants.setElmt(i, 0, determinant);
         }
         // look for each
@@ -202,7 +190,7 @@ public class SPL {
             for (int i = pivotRow + 1; i < rowCount; i++) {
                 double factor = m.getElmt(i, pivotCol);
                 if (Math.abs(factor) > 1e-9) {
-                    steps.append(String.format("-> B%d = B%d - (%.4f * B%d)\n", i + 1, i + 1, factor, pivotRow + 1));
+                    steps.append(String.format("-> B%d = B%d - (%.3f * B%d)\n", i + 1, i + 1, factor, pivotRow + 1));
                     m.addRowMultiple(i, pivotRow, -factor);
                 }
             }
@@ -249,7 +237,7 @@ public class SPL {
             for (int i = r+1; i < rowCount; i++){
                 double factor = m1.getElmt(i, lead);
                 if (factor != 0){
-                    steps.append(String.format("-> B%d = B%d - (%.4f * B%d)\n", i + 1, i + 1, factor, r + 1));
+                    steps.append(String.format("-> B%d = B%d - (%.3f * B%d)\n", i + 1, i + 1, factor, r + 1));
                     m1.addRowMultiple(i, r, -1 * factor);
                 }
             }
@@ -271,7 +259,7 @@ public class SPL {
                 for (int r = i - 1; r >= 0; r--) {
                     double factor = m1.getElmt(r, lead);
                     if (Math.abs(factor) > 1e-9) {
-                        steps.append(String.format("-> B%d = B%d - (%.4f * B%d)\n", r + 1, r + 1, factor, i + 1));
+                        steps.append(String.format("-> B%d = B%d - (%.3f * B%d)\n", r + 1, r + 1, factor, i + 1));
                         m1.addRowMultiple(r, i, -factor);
                     }
                 }
@@ -291,7 +279,7 @@ public class SPL {
         for (int pivotCol = 0; pivotCol < colCount - 1 && pivotRow < rowCount; pivotCol++) {
             int nonZero = pivotRow;
             while (nonZero < rowCount && m.getElmt(nonZero, pivotCol) == 0) {
-                nonZero++;  // cek bawah
+                nonZero++;
             }
             if (nonZero == rowCount) {
                 continue;
@@ -325,17 +313,10 @@ public class SPL {
         double[] b = m.getCol(m.getColsCount() - 1);
 
         if(checkNoSolution(a, b)){
-            // Jika tidak ada solusi, kembalikan null
-//            System.out.println("Tidak ada solusi.");
             return null;
         } else if (checkUniqueSolution(a, b)){
-            // Jika solusi unik, langsung hitung dengan substitusi balik
-//            System.out.println("Solusi unik ditemukan.");
             return backSubstitute(a,b);
         } else {
-            // Jika tidak keduanya, berarti solusi banyak.
-            // Panggil fungsi untuk membuat matriks parametrik.
-//            System.out.println("Terdapat banyak solusi (solusi parametrik).");
             return getParametricSolution(a, b);
         }
     }
@@ -352,7 +333,6 @@ public class SPL {
         int[] pivotRows = new int[n];
         java.util.Arrays.fill(pivotRows, -1);
 
-        // Identifikasi variabel pivot dan bebas
         for (int i = 0; i < a.getRowsCount(); i++) {
             for (int j = 0; j < n; j++) {
                 if (a.getElmt(i, j) == 1) {
@@ -371,13 +351,10 @@ public class SPL {
         }
 
         // Buat matriks hasil
-        // Jumlah kolom = 1 (untuk solusi khusus) + jumlah variabel bebas
         int resultCols = 1 + freeVarIndices.size();
         Matrix result = new Matrix(n, resultCols);
 
         // Isi kolom pertama (solusi khusus)
-        // Variabel pivot diisi dengan nilai dari vektor b
-        // Variabel bebas bernilai 0
         for (int i = 0; i < n; i++) {
             if (isPivot[i]) {
                 result.setElmt(i, 0, b[pivotRows[i]]);

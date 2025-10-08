@@ -23,22 +23,11 @@ public class Interpolation {
         }
         int systemSize = numPoints - 2;
 
-        // Generate tridiagonal matrix
         Matrix tridiagonal = tridiagonalMatrix(systemSize);
-
-        // X-part
         Matrix xPart = createVectorFromPoints(points, 0);
-
-        // Y-part
         Matrix yPart = createVectorFromPoints(points, 1);
-
-        // Solve for x
         Matrix xSolution = SPL.gauss(Matrix.augment(tridiagonal, xPart)).solution;
-
-        // Solve for y
         Matrix ySolution = SPL.gauss(Matrix.augment(tridiagonal, yPart)).solution;
-
-        // Satuin kembali menjadi titik
         Matrix[] result = new Matrix[xSolution.getRowsCount()];
         for (int i = 0; i < xSolution.getRowsCount(); i++) {
             double mx = xSolution.getElmt(i, 0);
@@ -52,15 +41,12 @@ public class Interpolation {
         Matrix matrix= new Matrix(size, size);
 
         for (int i = 0; i < size; i++) {
-            // set main diagonal to 4
             matrix.setElmt(i, i, 4);
 
-            // set above main diagonal to 1
             if (i < size - 1) {
                 matrix.setElmt(i, i + 1, 1);
             }
 
-            // set below main diagonal to 1
             if (i > 0) {
                 matrix.setElmt(i, i - 1, 1);
             }
@@ -71,20 +57,16 @@ public class Interpolation {
     private static Matrix createVectorFromPoints(Matrix points, int col) {
         int vectorSize = points.getRowsCount() - 2;
 
-        // Create the correctly sized result matrix (a column vector)
         Matrix resultVector = new Matrix(vectorSize, 1);
 
-        // fill all points
         for (int i = 0; i < vectorSize; i++) {
             double val = 6 * points.getElmt(i + 1, col);
             resultVector.setElmt(i, 0, val);
         }
 
-        // adjust first 6s1 -> 6s1- s0
         double firstVal = resultVector.getElmt(0, 0) - points.getElmt(0, col);
         resultVector.setElmt(0, 0, firstVal);
 
-        // adjust last 6_sn-1 -> 6_sn-1 - sₙ
         double lastVal = resultVector.getElmt(vectorSize - 1, 0) - points.getElmt(points.getRowsCount() - 1, col);
         resultVector.setElmt(vectorSize - 1, 0, lastVal);
 

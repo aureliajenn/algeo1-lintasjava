@@ -83,7 +83,7 @@ public class InterpolationController {
                 if (doEstimate) {
                     double xVal = Double.parseDouble(estimateField.getText().replace(',', '.'));
                     double yVal = predictPolynomial(coeffs, xVal);
-                    result += String.format(Locale.US, "\n\nHasil Taksiran:\nf(%.1f) = %.4f", xVal, yVal);
+                    result += String.format(Locale.US, "\n\nHasil Taksiran:\nf(%.3f) = %.3f", xVal, yVal);
                 }
                 outputArea.setText(result);
 
@@ -117,7 +117,7 @@ public class InterpolationController {
         int pointCtr = 1;
         for (Matrix controlPoints : segments) {
             for (int j = 0; j < controlPoints.getRowsCount(); j++) {
-                sb.append(String.format("  Titik Kontrol %d: (%.4f, %.4f)\n", pointCtr,
+                sb.append(String.format("  Titik Kontrol %d: (%.3f, %.3f)\n", pointCtr,
                         controlPoints.getElmt(j, 0), controlPoints.getElmt(j, 1)));
                 pointCtr++;
             }
