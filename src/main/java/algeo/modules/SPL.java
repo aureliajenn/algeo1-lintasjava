@@ -3,15 +3,14 @@ package algeo.modules;
 public class SPL {
     private static final int DIMENSION_THRESHOLD  = 11;
 
-    /*'********************************************************************'*/
-    /*'                                                                    '*/
-    /*'           way to solve linear equation (main function)             '*/
-    /*'                                                                    '*/
-    /*'********************************************************************'*/
-
     /*
-     * return solutions of a linear equation system
-     * with Gauss elimination method
+     * Menyelesaikan SPL menggunakan metode gauss
+     * Behaviors :
+     * 1. dimensi matrix <= DIMENSION_THRESHOLD, langkah-langkah akan dimunculkan
+     * 2. dimensi matrix > DIMENSION_THRESHOLD, langkah-langkah tidak dimunculkan
+     *
+     * @param augmented
+     * @return SPLResult object yang terdiri dari solusi dan langkah-langkah
      */
     public static SPLResult gauss(Matrix augmented) {
         if (augmented.getRowsCount() > DIMENSION_THRESHOLD) {
@@ -50,10 +49,14 @@ public class SPL {
         }
     }
 
-
     /*
-     * return solutions of a linear equation system
-     * with Gauss-Jordan elimination method
+     * Menyelesaikan SPL menggunakan metode gaussJordan
+     * Behaviors :
+     * 1. dimensi matrix <= DIMENSION_THRESHOLD, langkah-langkah akan dimunculkan
+     * 2. dimensi matrix > DIMENSION_THRESHOLD, langkah-langkah tidak dimunculkan
+     *
+     * @param augmented
+     * @return SPLResult object yang terdiri dari solusi dan langkah-langkah
      */
     public static SPLResult gaussJordan(Matrix augmented){
         if (augmented.getRowsCount() > DIMENSION_THRESHOLD) {
@@ -74,11 +77,18 @@ public class SPL {
             steps.append("-> Ditemukan baris [0 0 ... | c] dengan c != 0. SPL tidak memiliki solusi.\n");
             return new SPLResult(null, steps.toString());
         } else if (checkUniqueSolution(a, b)){
+            // Jika tidak ada solusi, kembalikan null
+            steps.append("-> Ditemukan baris [0 0 ... | c] dengan c != 0. SPL tidak memiliki solusi.\n");
+            return new SPLResult(null, steps.toString());
+        } else if (checkUniqueSolution(a, b)){
+            // Jika solusi unik, langsung hitung dengan substitusi balik
             steps.append("-> Setiap variabel adalah variabel pivot. SPL memiliki solusi unik.\n");
             Matrix solution = backSubstitute(a, b);
             steps.append("Solusi:\n").append(solution);
             return new SPLResult(solution, steps.toString());
         } else {
+            // Jika tidak keduanya, berarti solusi banyak.
+            // Panggil fungsi untuk membuat matriks parametrik.
             steps.append("-> Terdapat variabel bebas. SPL memiliki banyak solusi (parametrik).\n");
             Matrix solution = getParametricSolution(a, b);
             steps.append("Solusi Parametrik (kolom pertama adalah konstanta, kolom berikutnya adalah parameter):\n").append(solution);
@@ -87,9 +97,14 @@ public class SPL {
     }
 
     /*
-     * return solutions of a linear equation system using cramer method
-     * Ax = b
+     * Menyelesaikan SPL menggunakan metode cramer (Ax = b)
+     * Behaviors :
+     * 1. dimensi matrix <= DIMENSION_THRESHOLD, langkah-langkah akan dimunculkan
+     * 2. dimensi matrix > DIMENSION_THRESHOLD, langkah-langkah tidak dimunculkan
      *
+     * @param coeffMatrix -> A
+     * @param constMatrix -> b
+     * @return SPLResult object yang terdiri dari solusi dan langkah-langkah
      */
     public static SPLResult cramer(Matrix coeffMatrix, Matrix constMatrix) {
         double coeffMatDet = Determinant.detReduksiBaris(coeffMatrix).value;
@@ -133,6 +148,16 @@ public class SPL {
         return new SPLResult(solution, steps.toString());
     }
 
+    /*
+     * Menyelesaikan SPL menggunakan metode invers
+     * Behaviors :
+     * 1. dimensi matrix <= DIMENSION_THRESHOLD, langkah-langkah akan dimunculkan
+     * 2. dimensi matrix > DIMENSION_THRESHOLD, langkah-langkah tidak dimunculkan
+     *
+     * @param coeffMatrix
+     * @param constMatrix
+     * @return SPLResult object yang terdiri dari solusi dan langkah-langkah
+     */
     public static SPLResult inverseMethod(Matrix coef, Matrix constantM) {
         if (coef.getRowsCount() != coef.getColsCount()) {
             throw new IllegalArgumentException("Matrix A harus persegi");
@@ -163,11 +188,13 @@ public class SPL {
             return new SPLResult(null, error.getMessage());
         }
     }
-    /*'***********************************************************************'*/
-    /*'                                                                       '*/
-    /*                               helpers                                   */
-    /*'                                                                       '*/
-    /*'***********************************************************************'*/
+
+    /*
+     * Mengubah matriks augmented menjadi bentuk eselon baris (Row Echelon Form)
+     * menggunakan eliminasi Gauss, sambil mencatat setiap langkah Operasi Baris Elementer.
+     * @param augmented Matriks augmented [A|b] yang akan diubah.
+     * @return Objek SPLResult yang berisi matriks hasil dalam bentuk eselon baris dan string rincian langkahnya.
+     */
     public static SPLResult echelonFormWithSteps(Matrix augmented) {
         StringBuilder steps = new StringBuilder();
         Matrix m = augmented.copyMatrix();
@@ -201,6 +228,13 @@ public class SPL {
         return new SPLResult(m, steps.toString());
     }
 
+    /*
+     * Mengubah matriks menjadi bentuk eselon baris tereduksi (Reduced Row Echelon Form)
+     * menggunakan eliminasi Gauss-Jordan, sambil mencatat setiap langkahnya.
+     * Proses ini mencakup eliminasi maju (membuat segitiga bawah nol) dan eliminasi mundur (membuat segitiga atas nol).
+     * @param m Matriks yang akan diubah ke bentuk RREF.
+     * @return Objek SPLResult yang berisi matriks hasil dalam bentuk RREF dan string rincian langkahnya.
+     */
     public static SPLResult reducedEchelonFormWithSteps(Matrix m){
         StringBuilder steps = new StringBuilder("Mengubah ke Bentuk Eselon Baris Tereduksi (RREF):\n");
         Matrix m1 = m.copyMatrix();
@@ -269,6 +303,13 @@ public class SPL {
         steps.append("Bentuk Eselon Baris Tereduksi (RREF) akhir tercapai.\n");
         return new SPLResult(m1, steps.toString());
     }
+
+    /*
+     * Menyelesaikan Sistem Persamaan Linear (SPL) menggunakan metode eliminasi Gauss
+     * yang diikuti dengan substitusi balik (back substitution), tanpa mencatat langkah-langkahnya.
+     * @param augmented Matriks augmented [A|b] dari sistem yang akan diselesaikan.
+     * @return Sebuah matriks kolom (vektor) yang merepresentasikan solusi unik dari SPL.
+     */
     public static Matrix gaussWithoutSteps(Matrix augmented) {
         Matrix m = augmented.copyMatrix();
 
@@ -305,6 +346,13 @@ public class SPL {
         return backSubstitute(A, b);
     }
 
+    /*
+     * Menyelesaikan SPL menggunakan metode eliminasi Gauss-Jordan tanpa mencatat langkah.
+     * Fungsi ini akan mengubah matriks ke RREF, lalu menganalisis dan mengembalikan jenis solusinya
+     * (unik, banyak solusi, atau tidak ada solusi).
+     * @param augmented Matriks augmented [A|b] dari sistem yang akan diselesaikan.
+     * @return Sebuah matriks solusi. Bisa berupa vektor kolom (solusi unik), matriks parametrik (banyak solusi), atau null (tidak ada solusi).
+     */
     private static Matrix gaussJordanWithoutSteps(Matrix augmented){
         Matrix m = augmented.copyMatrix();
         m = reducedEchelonFormWithoutSteps(m);
@@ -317,15 +365,25 @@ public class SPL {
         } else if (checkUniqueSolution(a, b)){
             return backSubstitute(a,b);
         } else {
+            // Jika tidak ada solusi, kembalikan null
+            return null;
+        } else if (checkUniqueSolution(a, b)){
+            // Jika solusi unik, langsung hitung dengan substitusi balik
+            return backSubstitute(a,b);
+        } else {
+            // Jika tidak keduanya, berarti solusi banyak.
+            // Panggil fungsi untuk membuat matriks parametrik.
             return getParametricSolution(a, b);
         }
     }
 
     /*
-     * Membangun matriks yang merepresentasikan solusi parametrik untuk sistem
-     * dengan banyak solusi.
-     * Kolom pertama matriks hasil adalah solusi khusus (particular solution).
-     * Kolom-kolom berikutnya adalah vektor yang berkorespondensi dengan setiap variabel bebas (parameter).
+     * Membangun matriks yang merepresentasikan solusi parametrik untuk sistem dengan banyak solusi.
+     * Kolom pertama dari matriks hasil adalah solusi khusus (particular solution),
+     * sementara kolom-kolom berikutnya adalah vektor yang berkorespondensi dengan setiap variabel bebas.
+     * @param a Matriks koefisien yang sudah dalam bentuk RREF.
+     * @param b Vektor konstanta yang sudah disesuaikan dengan matriks RREF.
+     * @return Matriks yang merepresentasikan solusi parametrik.
      */
     public static Matrix getParametricSolution(Matrix a, double[] b) {
         int n = a.getColsCount();
@@ -382,6 +440,14 @@ public class SPL {
         return result;
     }
 
+    /*
+     * Fungsi pembantu untuk membuat semua elemen di bawah sebuah pivot menjadi nol dalam satu kolom.
+     * Ini adalah bagian dari proses eliminasi maju dalam eliminasi Gauss.
+     * @param m Matriks yang sedang diproses.
+     * @param pivotRow Indeks baris dari pivot.
+     * @param pivotCol Indeks kolom dari pivot.
+     * @return Matriks baru yang elemen di bawah pivotnya sudah dinolkan.
+     */
     public static Matrix zeroBelowPivot(Matrix m, int pivotRow, int pivotCol){
         Matrix m1 = m.copyMatrix();
         for(int i = pivotRow + 1; i < m1.getRowsCount(); i++){
@@ -393,22 +459,11 @@ public class SPL {
         return m1;
     }
 
-//    public static Matrix zeroAbovePivot(Matrix m, int pivotRow, int pivotCol){
-//        Matrix m1 = m.copyMatrix();
-//        for(int i = pivotRow - 1; i >= 0; i--){
-//            double factor = m1.getElmt(i, pivotCol);
-//            if (factor != 0){
-//                m1.addRowMultiple(i, pivotRow, -1 * factor);
-//            }
-//        }
-//        return m1;
-//    }
-
     /*
-     * transforms the given matrix into its Reduced Row Echelon Form
-     *  [ 1 2 -1]    [1 0 -3]
-     *  [ 2 3  0] -> [0 1  2]
-     *  [ 3 5  1]    [0 0  0]
+     * Mengubah matriks yang diberikan menjadi bentuk eselon baris tereduksi (Reduced Row Echelon Form)
+     * tanpa mencatat langkah-langkah prosesnya.
+     * @param m Matriks yang akan diubah.
+     * @return Matriks baru dalam bentuk RREF.
      */
     public static Matrix reducedEchelonFormWithoutSteps(Matrix m){
         Matrix m1 = m.copyMatrix();
@@ -471,7 +526,9 @@ public class SPL {
     }
 
     /*
-     * return the first index of a non-zero element in a row
+     * Fungsi pembantu untuk mencari indeks kolom dari elemen non-nol pertama dalam sebuah baris.
+     * @param row Sebuah array double yang merepresentasikan satu baris matriks.
+     * @return Indeks elemen non-nol pertama, atau -1 jika seluruh baris berisi nol.
      */
     private static int idxNotZero(double[] row) {
         for (int i = 0; i < row.length; i++) {
@@ -480,26 +537,13 @@ public class SPL {
         return -1;
     }
 
-//    /*
-//     * arrange the rows so that the leading one arrangement
-//     * is in accordance with the requirements of the echelon matrix
-//     */
-//    private static Matrix adjustLeadingOneRow(Matrix m){
-//        Matrix m1 = m.copyMatrix();
-//        for(int i = m1.getRowsCount()-1; i >= 0; i--){
-//            int idx = idxNotZero(m1.getRow(i));
-//            if(idx == -1){
-//                continue;
-//            }
-//            if (i != idx){
-//                m1.swapRow(i,idx);
-//            }
-//        }
-//        return m1;
-//    }
-
     /*
-     * Checks if the linear equation system has no solution.
+     * Memeriksa apakah sebuah SPL tidak memiliki solusi.
+     * Ini dideteksi dengan adanya baris kontradiktif pada matriks eselon,
+     * yaitu baris berbentuk [0 0 ... 0 | k] di mana k bukan nol.
+     * @param a Matriks koefisien dalam bentuk eselon.
+     * @param b Vektor konstanta yang sudah disesuaikan.
+     * @return true jika tidak ada solusi, false jika sebaliknya.
      */
     public static boolean checkNoSolution(Matrix a, double[] b) {
         for (int i = 0; i < a.getRowsCount(); i++) {
@@ -520,7 +564,12 @@ public class SPL {
     }
 
     /*
-     * Checks if the linear equation system has infinitely many solutions.
+     * Memeriksa apakah sebuah SPL memiliki banyak solusi (solusi tak hingga).
+     * Ini terjadi jika sistem konsisten (tidak ada kontradiksi) dan jumlah variabel
+     * lebih banyak dari rank matriks (terdapat variabel bebas).
+     * @param a Matriks koefisien dalam bentuk eselon.
+     * @param b Vektor konstanta yang sudah disesuaikan.
+     * @return true jika terdapat banyak solusi, false jika sebaliknya.
      */
     public static boolean checkManySolution(Matrix a, double[] b) {
         if (checkNoSolution(a, b)) {
@@ -543,10 +592,12 @@ public class SPL {
     }
 
     /*
-     * Checks if the linear equation system has a unique solution.
-     * This occurs if the system is consistent (has no contradictions) and the rank
-     * of the coefficient matrix is equal to the number of variables. This means there
-     * are no free variables.
+     * Memeriksa apakah sebuah SPL memiliki solusi unik.
+     * Ini terjadi jika sistem konsisten dan rank matriks koefisien sama dengan jumlah variabel
+     * (tidak ada variabel bebas).
+     * @param a Matriks koefisien dalam bentuk eselon.
+     * @param b Vektor konstanta yang sudah disesuaikan.
+     * @return true jika solusi unik, false jika sebaliknya.
      */
     public static boolean checkUniqueSolution(Matrix a, double[] b) {
         if (checkNoSolution(a, b) || checkManySolution(a, b)) {
@@ -570,8 +621,11 @@ public class SPL {
     }
 
     /*
-     * do the backward substitution to get the result of the linear equation
-     * in gauss method
+     * Menjalankan proses substitusi balik (backward substitution) untuk menemukan solusi SPL
+     * dari matriks yang sudah dalam bentuk eselon baris.
+     * @param A Matriks koefisien dalam bentuk eselon baris.
+     * @param B Vektor konstanta yang sudah disesuaikan.
+     * @return Sebuah matriks kolom (vektor) yang berisi nilai-nilai solusi.
      */
     private static Matrix backSubstitute(Matrix A, double[] B) {
         int n = A.getColsCount();

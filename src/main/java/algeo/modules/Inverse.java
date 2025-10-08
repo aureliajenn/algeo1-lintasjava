@@ -2,6 +2,17 @@ package algeo.modules;
 
 public class Inverse {
     private static final int DIMENSION_THRESHOLD  = 11;
+
+    /*
+     * Menghitung invers matriks dengan metode matriks augmented [A | I].
+     * Metode ini menggunakan eliminasi Gauss-Jordan untuk mengubah [A | I] menjadi [I | A⁻¹].
+     * Behaviors :
+     * 1. dimensi matrix <= DIMENSION_THRESHOLD, langkah-langkah OBE akan dicatat.
+     * 2. dimensi matrix > DIMENSION_THRESHOLD, langkah-langkah tidak akan dicatat.
+     *
+     * @param a Matriks persegi dan non-singular (determinan != 0) yang akan diinvers.
+     * @return InverseResult object yang berisi matriks invers dan langkah-langkahnya.
+     */
     public static InverseResult inverseAugment(Matrix a) {
         if (!a.isSquare()) {
             throw new IllegalArgumentException("Matriks harus persegi");
@@ -39,6 +50,13 @@ public class Inverse {
         return new InverseResult(inverse, steps.toString());
     }
 
+    /*
+     * Fungsi pembantu untuk metode matriks augmented tanpa pencatatan langkah.
+     * Digunakan untuk efisiensi pada matriks berdimensi besar.
+     *
+     * @param a Matriks persegi dan non-singular yang akan diinvers.
+     * @return matriks invers dari matriks input.
+     */
     private static Matrix inverseAugmentWithoutSteps(Matrix a) {
         int n = a.getRowsCount();
 
@@ -57,6 +75,16 @@ public class Inverse {
         return inverse;
     }
 
+    /*
+     * Menghitung invers matriks dengan metode Adjoin.
+     * Menggunakan formula: A⁻¹ = (1/det(A)) * Adj(A), di mana Adj(A) adalah transpose dari matriks kofaktor.
+     * Behaviors :
+     * 1. dimensi matrix <= DIMENSION_THRESHOLD, langkah-langkah akan dicatat.
+     * 2. dimensi matrix > DIMENSION_THRESHOLD, langkah-langkah tidak akan dicatat.
+     *
+     * @param a Matriks persegi dan non-singular (determinan != 0) yang akan diinvers.
+     * @return InverseResult object yang berisi matriks invers dan langkah-langkahnya.
+     */
     public static InverseResult inverseAdjoin(Matrix a) {
         if (!a.isSquare()) {
             throw new IllegalArgumentException("Invers tidak terdefinisi untuk matriks nonpersegi");
@@ -92,7 +120,14 @@ public class Inverse {
     }
 
     /*
-     * membentuk matriks kofaktor dari matriks a
+     * Membentuk matriks kofaktor dari sebuah matriks input.
+     * Setiap elemen C(i,j) dari matriks kofaktor adalah (-1)^(i+j) dikali determinan dari minor M(i,j).
+     * Behaviors :
+     * 1. dimensi matrix <= DIMENSION_THRESHOLD, langkah-langkah akan dicatat.
+     * 2. dimensi matrix > DIMENSION_THRESHOLD, langkah-langkah tidak akan dicatat.
+     *
+     * @param a Matriks persegi yang akan dibuatkan matriks kofaktornya.
+     * @return CofactorResult object yang berisi matriks kofaktor dan langkah-langkah pembentukannya.
      */
     public static CofactorResult cofactorMatrix(Matrix a){
         if (!a.isSquare()){
