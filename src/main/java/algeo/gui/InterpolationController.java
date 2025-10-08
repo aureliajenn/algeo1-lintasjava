@@ -2,32 +2,64 @@ package algeo.gui;
 
 import algeo.modules.Interpolation;
 import algeo.modules.Matrix;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.HBox;
+import java.util.Locale;
 
-/*
- * Controller yang bertanggung jawab untuk menangani semua aksi
- * dari file InterpolationUI.fxml.
- */
 public class InterpolationController {
 
     @FXML private ToggleGroup methodGroup;
     @FXML private TextArea inputArea;
     @FXML private TextField estimateField;
     @FXML private TextArea outputArea;
+    @FXML private HBox estimateBox;
 
     private UIController uiController;
 
     /*
-     * Metode ini akan dipanggil oleh UIController untuk memberikan
-     * referensi dirinya sendiri ke controller ini.
+     * Metode initialize() ini akan otomatis dijalankan oleh JavaFX setelah
+     * semua komponen FXML dimuat.
      */
+    @FXML
+    public void initialize() {
+        methodGroup.selectedToggleProperty().addListener((observable, oldToggle, newToggle) -> {
+            if (newToggle != null) {
+                String selectedMethod = ((RadioButton) newToggle).getText();
+                estimateBox.setVisible("Polinomial".equals(selectedMethod));
+            }
+        });
+    }
+
     public void setUiController(UIController uiController) {
         this.uiController = uiController;
+    }
+
+    @FXML
+    void handleLoadFile(ActionEvent event) {
+        if (uiController != null) {
+            uiController.loadFileToTextArea(inputArea);
+        }
+    }
+
+    @FXML
+    void handleSaveFile(ActionEvent event) {
+        if (uiController != null) {
+            RadioButton selectedRadioButton = (RadioButton) methodGroup.getSelectedToggle();
+            String method = (selectedRadioButton != null) ? selectedRadioButton.getText() : "Tidak diketahui";
+
+            String contentToSave = "Metode: Interpolasi " + method + "\n\n" +
+                    "Input Titik:\n" + inputArea.getText() + "\n\n" +
+                    "Hasil:\n" + outputArea.getText();
+            uiController.saveTextToFile(contentToSave);
+        }
     }
 
     @FXML
@@ -47,14 +79,15 @@ public class InterpolationController {
                 String polynomial = FormatResult.buildPolynomialString(coeffs);
                 String result = "Persamaan Polinomial:\n" + polynomial;
 
-                if (estimateField.getText() != null && !estimateField.getText().trim().isEmpty()) {
+                boolean doEstimate = estimateField.getText() != null && !estimateField.getText().trim().isEmpty();
+                if (doEstimate) {
                     double xVal = Double.parseDouble(estimateField.getText().replace(',', '.'));
                     double yVal = predictPolynomial(coeffs, xVal);
-                    result += "\n\nHasil Taksiran:\nf(" + xVal + ") = " + String.format("%.4f", yVal);
+                    result += String.format(Locale.US, "\n\nHasil Taksiran:\nf(%.1f) = %.4f", xVal, yVal);
                 }
                 outputArea.setText(result);
 
-            } else { // Splina Bezier
+            } else {
                 Matrix[] segments = Interpolation.interpolasiSplinaBezierKubik(points);
                 outputArea.setText(formatBezierResult(segments));
             }
@@ -81,10 +114,7 @@ public class InterpolationController {
     private String formatBezierResult(Matrix[] segments) {
         StringBuilder sb = new StringBuilder("Titik-titik Kontrol Kurva Splina Bezier Kubik:\n");
         sb.append("------------------------------------------\n");
-
         int pointCtr = 1;
-
-        // Iterasi melalui setiap segmen
         for (Matrix controlPoints : segments) {
             for (int j = 0; j < controlPoints.getRowsCount(); j++) {
                 sb.append(String.format("  Titik Kontrol %d: (%.4f, %.4f)\n", pointCtr,
@@ -92,7 +122,6 @@ public class InterpolationController {
                 pointCtr++;
             }
         }
-
         sb.append("------------------------------------------\n");
         return sb.toString();
     }

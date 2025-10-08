@@ -1,6 +1,7 @@
 package algeo.gui;
 
 import algeo.modules.Matrix;
+import java.util.Locale;
 
 public class FormatResult {
 
@@ -18,21 +19,19 @@ public class FormatResult {
         StringBuilder sb = new StringBuilder();
 
         if (numCols == 1) {
-            // Solusi unik/tunggal
             sb.append("Solusi unik ditemukan:\n");
             for (int i = 0; i < numVariables; i++) {
-                sb.append(String.format("x%d = %.4f\n", i + 1, solutionMatrix.getElmt(i, 0)));
+                sb.append(String.format(Locale.US, "x%d = %.4f\n", i + 1, solutionMatrix.getElmt(i, 0)));
             }
         } else {
-            // Solusi banyak (parametrik)
             sb.append("Terdapat banyak solusi (solusi parametrik):\n");
             String[] params = {"t", "s", "r", "p", "q"};
             for (int i = 0; i < numVariables; i++) {
-                sb.append(String.format("x%d = ", i + 1));
+                sb.append(String.format(Locale.US, "x%d = ", i + 1));
                 double constant = solutionMatrix.getElmt(i, 0);
                 boolean isFirstTerm = true;
                 if (Math.abs(constant) > 1e-9 || numCols == 1) {
-                    sb.append(String.format("%.4f", constant));
+                    sb.append(String.format(Locale.US, "%.4f", constant));
                     isFirstTerm = false;
                 }
                 for (int j = 1; j < numCols; j++) {
@@ -47,7 +46,7 @@ public class FormatResult {
                         isFirstTerm = false;
                         double absCoeff = Math.abs(coeff);
                         if (Math.abs(absCoeff - 1.0) > 1e-9) {
-                            sb.append(String.format("%.4f", absCoeff));
+                            sb.append(String.format(Locale.US, "%.4f", absCoeff));
                         }
                         sb.append(paramName);
                     }
@@ -59,19 +58,47 @@ public class FormatResult {
         return sb.toString();
     }
 
+    /*
+     * Metode ini membentuk format fungsi hassil inteprolasi polinomial, dengan:
+     * - Suku diurutkan dari pangkat terbesar
+     * - Suku dengan koefisien 0 tidak ditampilkan
+     */
     public static String buildPolynomialString(Matrix coeffs) {
         StringBuilder sb = new StringBuilder("y(x) = ");
-        for (int i = 0; i < coeffs.getRowsCount(); i++) {
+        boolean isFirstTerm = true;
+
+        for (int i = coeffs.getRowsCount() - 1; i >= 0; i--) {
             double c = coeffs.getElmt(i, 0);
-            if (i > 0) {
-                sb.append(c >= 0 ? " + " : " - ");
-                sb.append(String.format("%.4f", Math.abs(c)));
-            } else {
-                sb.append(String.format("%.4f", c));
+            if (Math.abs(c) < 1e-9) {
+                continue;
             }
-            if (i == 1) sb.append("x");
-            else if (i > 1) sb.append("x^").append(i);
+
+            double absCoeff = Math.abs(c);
+            if (isFirstTerm) {
+                if (c < 0) {
+                    sb.append("-");
+                }
+            } else {
+                sb.append(c > 0 ? " + " : " - ");
+            }
+
+            if (Math.abs(absCoeff - 1.0) > 1e-9 || i == 0) {
+                sb.append(String.format(Locale.US, "%.4f", absCoeff));
+            }
+
+            if (i == 1) {
+                sb.append("x");
+            } else if (i > 1) {
+                sb.append("x^").append(i);
+            }
+
+            isFirstTerm = false;
         }
+
+        if (isFirstTerm) {
+            sb.append("0.0000");
+        }
+
         return sb.toString();
     }
 }
