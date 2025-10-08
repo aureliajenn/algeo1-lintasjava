@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class FileHandler {
+
     public static RegressionInput parseRegresi(String filename) throws FileNotFoundException {
         Scanner sc = new Scanner(new File(filename));
         int rowCount = 0;
@@ -28,7 +29,7 @@ public class FileHandler {
 
         double[][] X = new double[n][k + 1];
         double[][] y = new double[n][1];
-        int derajatPolim;
+        int derajatPolim = 0; // Inisialisasi
 
         sc = new Scanner(new File(filename));
         int row = 0;
@@ -39,64 +40,36 @@ public class FileHandler {
 
             if (row == rowCount - 1) {
                 derajatPolim = (int) Double.parseDouble(parts[0].replace(',', '.'));
-                sc.close();
-                return new RegressionInput(new Matrix(X), new Matrix(y), derajatPolim);
+                break; // Keluar dari loop setelah mendapatkan derajatPolim
             }
 
             X[row][0] = 1.0;
-
             for (int j = 0; j < k; j++) {
                 X[row][j + 1] = Double.parseDouble(parts[j].replace(',', '.'));
             }
-
             y[row][0] = Double.parseDouble(parts[k].replace(',', '.'));
-
             row++;
         }
         sc.close();
 
-        throw new IllegalArgumentException("File input regresi tidak valid");
+        return new RegressionInput(new Matrix(X), new Matrix(y), derajatPolim);
     }
 
-
+    /*
+     * Membaca seluruh isi file menjadi satu String,
+     * lalu menyerahkan proses parsing sepenuhnya ke MatrixParser.
+     */
     public static Matrix readMatrix(String filename) throws FileNotFoundException {
         File file = new File(filename);
+        StringBuilder fileContent = new StringBuilder();
 
-        Scanner sc1 = new Scanner(file);
-        int rowCount = 0;
-        int colCount = -1;
-
-        while (sc1.hasNextLine()) {
-            String line = sc1.nextLine().trim();
-            if (line.isEmpty()) {
-                continue;
+        try (Scanner scanner = new Scanner(file)) {
+            while (scanner.hasNextLine()) {
+                fileContent.append(scanner.nextLine()).append("\n");
             }
-
-            String[] parts = line.split("\\s+");
-            if (colCount == -1) {
-                colCount = parts.length;
-            }
-            rowCount++;
         }
-        sc1.close();
 
-        double[][] arr = new double[rowCount][colCount];
-
-        Scanner sc2 = new Scanner(file);
-        int rowIndex = 0;
-        while (sc2.hasNextLine()) {
-            String line = sc2.nextLine().trim();
-            if (line.isEmpty()) continue;
-
-            String[] parts = line.split("\\s+");
-            for (int i = 0; i < colCount; i++) {
-                arr[rowIndex][i] = Double.parseDouble(parts[i].replace(',', '.'));
-            }
-            rowIndex++;
-        }
-        sc2.close();
-
-        return new Matrix(arr);
+        return MatrixParser.parseMatrix(fileContent.toString());
     }
 
     private static double[] parseRow(String line) {

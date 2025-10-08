@@ -19,7 +19,7 @@
         <VBox spacing="10.0" BorderPane.alignment="CENTER">
             <children>
                 <Label text="Input:" />
-                <TextArea fx:id="inputArea" prefHeight="200.0" prefWidth="200.0" promptText="Masukkan matriks di sini atau gunakan tombol 'Load File'." />
+                <TextArea fx:id="inputArea" prefHeight="90.0" promptText="Masukkan matriks di sini atau gunakan tombol 'Load File'." VBox.vgrow="ALWAYS" />
             </children>
         </VBox>
     </center>
@@ -35,9 +35,9 @@
                     </children>
                 </HBox>
                 <Label text="Output:" />
-                <TextArea fx:id="outputArea" editable="false" prefHeight="200.0" prefWidth="200.0" style="-fx-font-family: 'monospaced';" />
+                <TextArea fx:id="outputArea" editable="false" prefHeight="90.0" style="-fx-font-family: 'monospaced';" />
                 <Label text="Langkah-langkah:" />
-                <TextArea fx:id="stepsArea" editable="false" prefHeight="200.0" prefWidth="200.0" style="-fx-font-family: 'monospaced';" />
+                <TextArea fx:id="stepsArea" editable="false" prefHeight="200.0" style="-fx-font-family: 'monospaced';" VBox.vgrow="ALWAYS" />
             </children>
         </VBox>
     </bottom>
