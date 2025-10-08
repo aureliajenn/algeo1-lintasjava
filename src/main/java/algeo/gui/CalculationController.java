@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
-/**
+/*
  * Controller yang bertanggung jawab untuk menangani semua aksi
  * dari file CalculationUI.fxml. Ini adalah controller umum untuk
  * SPL, Determinan, dan Invers.
@@ -25,16 +25,12 @@ public class CalculationController {
     private String method;
     private Runnable backAction;
 
-    /*
-     * Metode inisialisasi untuk menerima data dari UIController.
-     */
     public void initData(String type, String method, UIController uiController, Stage stage, Runnable backAction) {
         this.type = type;
         this.method = method;
         this.uiController = uiController;
         this.primaryStage = stage;
         this.backAction = backAction;
-
         this.headerLabel.setText(type + " - " + method);
     }
 
@@ -53,7 +49,7 @@ public class CalculationController {
                     break;
                 case "Determinan":
                     DeterminantResult detResult = solveDeterminant(inputMatrix);
-                    resultText = "Nilai Determinan: " + String.format("%.4f", detResult.value);
+                    resultText = "Nilai Determinan: " + String.format("%.8f", detResult.value);
                     stepsText = detResult.steps;
                     break;
                 case "Invers":
@@ -102,7 +98,6 @@ public class CalculationController {
                 Matrix[] ab = separateAugmentedMatrix(augmentedMatrix);
                 return SPL.cramer(ab[0], ab[1]);
             }
-            case "Eliminasi Gauss-Jordan":
             default:
                 return SPL.gaussJordan(augmentedMatrix);
         }
