@@ -79,7 +79,7 @@ public class RegressionController {
             }
 
             double prediction = predictRegression(xValues);
-            outputArea.setText("Hasil Taksiran:\ny = " + String.format("%.4f", prediction));
+            outputArea.setText("Hasil Taksiran:\ny = " + String.format("%.3f", prediction));
 
         } catch (Exception ex) {
             uiController.showErrorDialog("Error Taksiran", "Input taksiran tidak valid: " + ex.getMessage());
@@ -107,9 +107,9 @@ public class RegressionController {
             double c = coeffs.getElmt(i, 0);
             if (i > 0) {
                 sb.append(c >= 0 ? " + " : " - ");
-                sb.append(String.format("%.4f", Math.abs(c)));
+                sb.append(String.format("%.3f", Math.abs(c)));
             } else {
-                sb.append(String.format("%.4f", c));
+                sb.append(String.format("%.3f", c));
             }
             if (i > 0) sb.append("x").append(i);
         }

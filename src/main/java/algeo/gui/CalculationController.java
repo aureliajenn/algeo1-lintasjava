@@ -49,7 +49,7 @@ public class CalculationController {
                     break;
                 case "Determinan":
                     DeterminantResult detResult = solveDeterminant(inputMatrix);
-                    resultText = "Nilai Determinan: " + String.format("%.8f", detResult.value);
+                    resultText = "Nilai Determinan: " + String.format("%.3f", detResult.value);
                     stepsText = detResult.steps;
                     break;
                 case "Invers":
