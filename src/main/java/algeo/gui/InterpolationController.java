@@ -77,7 +77,13 @@ public class InterpolationController {
             if ("Polinomial".equals(method)) {
                 Matrix coeffs = Interpolation.polynomialInterpolation(points);
                 String polynomial = FormatResult.buildPolynomialString(coeffs);
+
+                double[] domain = findMinMaxX(points);
+                double minX = domain[0];
+                double maxX = domain[1];
+
                 String result = "Persamaan Polinomial:\n" + polynomial;
+                result += String.format(Locale.US, "\n\nDomain prediksi interpolasi yang valid: [%.3f, %.3f]", minX, maxX);
 
                 boolean doEstimate = estimateField.getText() != null && !estimateField.getText().trim().isEmpty();
                 if (doEstimate) {
