@@ -4,7 +4,9 @@ import algeo.modules.Matrix;
 import algeo.modules.Regression;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.ToggleGroup;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -13,7 +15,7 @@ import java.io.File;
 
 public class RegressionController {
 
-    @FXML private TextArea infoArea;   // bisa diketik manual
+    @FXML private TextArea infoArea;
     @FXML private TextArea outputArea;
 
     private UIController uiController;
@@ -27,7 +29,6 @@ public class RegressionController {
         this.primaryStage = primaryStage;
     }
 
-    // Load file dan tampilkan isi ke infoArea (tanpa label "Isi file ...")
     @FXML
     void handleLoadFile(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -76,6 +77,18 @@ public class RegressionController {
         uiController.showMainMenu();
     }
 
+    @FXML
+    void handleSave(ActionEvent event) {
+        if (uiController != null && !outputArea.getText().isEmpty()) {
+            String contentToSave = "Metode: Regresi Polinomial Berganda\n\n" +
+                    "Input Data:\n" + infoArea.getText() + "\n\n" +
+                    "Hasil:\n" + outputArea.getText();
+            uiController.saveTextToFile(contentToSave);
+        } else if (uiController != null) {
+            uiController.showErrorDialog("Simpan Gagal", "Tidak ada hasil untuk disimpan. Silakan proses data terlebih dahulu.");
+        }
+    }
+
     // ===== Helper =====
     private String formatRegressionString(Matrix coeffs) {
         StringBuilder sb = new StringBuilder("y = ");
@@ -83,9 +96,9 @@ public class RegressionController {
             double c = coeffs.getElmt(i, 0);
             if (i > 0) {
                 sb.append(c >= 0 ? " + " : " - ");
-                sb.append(String.format("%.4f", Math.abs(c)));
+                sb.append(String.format("%.3f", Math.abs(c)));
             } else {
-                sb.append(String.format("%.4f", c));
+                sb.append(String.format("%.3f", c));
             }
             if (i > 0) sb.append("x").append(i);
         }
