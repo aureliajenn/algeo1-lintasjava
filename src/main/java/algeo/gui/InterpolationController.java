@@ -106,7 +106,7 @@ public class InterpolationController {
     private double predictPolynomial(Matrix coeffs, double x) {
         double y = 0;
         for (int i = 0; i < coeffs.getRowsCount(); i++) {
-            y += coeffs.getElmt(i, 0) * Math.pow(x, i);
+            y += coeffs.getElmt(i, 0) * Math.pow(x, coeffs.getRowsCount() - 1 - i);
         }
         return y;
     }
@@ -124,5 +124,18 @@ public class InterpolationController {
         }
         sb.append("------------------------------------------\n");
         return sb.toString();
+    }
+
+    private static double[] findMinMaxX(Matrix M) {
+        double minX = M.getElmt(0, 0);
+        double maxX = M.getElmt(0, 0);
+
+        for (int i = 1; i < M.getRowsCount(); i++) {
+            double x = M.getElmt(i, 0);
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+        }
+
+        return new double[]{minX, maxX};
     }
 }
