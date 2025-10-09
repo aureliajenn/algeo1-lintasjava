@@ -4,9 +4,7 @@ import algeo.modules.Matrix;
 import algeo.modules.Regression;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.ToggleGroup;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -50,27 +48,29 @@ public class RegressionController {
     // Parse isi area teks (manual atau dari file) dan proses regresi
     @FXML
     void handleProcessRegression(ActionEvent event) {
-        String content = infoArea.getText().trim();
-        if (content.isEmpty()) {
-            uiController.showErrorDialog("Error", "Input data tidak boleh kosong.");
-            return;
-        }
-
-        try {
-            regInput = FileHandler.parseRegresi(content);
-            coefficients = Regression.multiRegression(regInput.X, regInput.y);
-
-            String equation = formatRegressionString(coefficients);
-            outputArea.setText(
-                "Persamaan Regresi Polinomial Berganda:\n\n" +
-                equation + "\n\n" +
-                "Derajat polinom: " + regInput.derajatPolim
-            );
-
-        } catch (Exception ex) {
-            uiController.showErrorDialog("Error Regresi", "Gagal memproses data: " + ex.getMessage());
-        }
+    String content = infoArea.getText().trim();
+    if (content.isEmpty()) {
+        uiController.showErrorDialog("Error", "Input data tidak boleh kosong.");
+        return;
     }
+
+    try {
+        regInput = FileHandler.parseRegresi(content);
+
+        Matrix Xused = Regression.expandPolynomialMatrix(regInput.X, regInput.derajatPolim);
+        coefficients = Regression.multiRegression(Xused, regInput.y);
+
+        String equation = formatRegressionString(coefficients, regInput.X.getColsCount() - 1, regInput.derajatPolim);
+        outputArea.setText(
+            "Persamaan Regresi Polinomial Berganda:\n\n" +
+            equation + "\n\n" +
+            "Derajat polinom: " + regInput.derajatPolim
+        );
+
+    } catch (Exception ex) {
+        uiController.showErrorDialog("Error Regresi", "Gagal memproses data: " + ex.getMessage());
+    }
+}
 
     @FXML
     void handleBack(ActionEvent event) {
@@ -90,17 +90,20 @@ public class RegressionController {
     }
 
     // ===== Helper =====
-    private String formatRegressionString(Matrix coeffs) {
+    private String formatRegressionString(Matrix coeffs, int k, int degree) {
         StringBuilder sb = new StringBuilder("y = ");
+        String[] names = algeo.modules.Regression.generateFeatureNames(k, degree);
+
         for (int i = 0; i < coeffs.getRowsCount(); i++) {
             double c = coeffs.getElmt(i, 0);
-            if (i > 0) {
-                sb.append(c >= 0 ? " + " : " - ");
-                sb.append(String.format("%.3f", Math.abs(c)));
+            if (i == 0) {
+                sb.append(String.format("%.4f", c));
             } else {
-                sb.append(String.format("%.3f", c));
+                if (c >= 0) sb.append(" + ");
+                else sb.append(" - ");
+                sb.append(String.format("%.4f", Math.abs(c)));
+                if (i < names.length) sb.append(names[i]);
             }
-            if (i > 0) sb.append("x").append(i);
         }
         return sb.toString();
     }
