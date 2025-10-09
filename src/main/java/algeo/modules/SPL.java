@@ -77,10 +77,6 @@ public class SPL {
             steps.append("-> Ditemukan baris [0 0 ... | c] dengan c != 0. SPL tidak memiliki solusi.\n");
             return new SPLResult(null, steps.toString());
         } else if (checkUniqueSolution(a, b)){
-            // Jika tidak ada solusi, kembalikan null
-            steps.append("-> Ditemukan baris [0 0 ... | c] dengan c != 0. SPL tidak memiliki solusi.\n");
-            return new SPLResult(null, steps.toString());
-        } else if (checkUniqueSolution(a, b)){
             // Jika solusi unik, langsung hitung dengan substitusi balik
             steps.append("-> Setiap variabel adalah variabel pivot. SPL memiliki solusi unik.\n");
             Matrix solution = backSubstitute(a, b);
@@ -365,14 +361,6 @@ public class SPL {
         } else if (checkUniqueSolution(a, b)){
             return backSubstitute(a,b);
         } else {
-            // Jika tidak ada solusi, kembalikan null
-            return null;
-        } else if (checkUniqueSolution(a, b)){
-            // Jika solusi unik, langsung hitung dengan substitusi balik
-            return backSubstitute(a,b);
-        } else {
-            // Jika tidak keduanya, berarti solusi banyak.
-            // Panggil fungsi untuk membuat matriks parametrik.
             return getParametricSolution(a, b);
         }
     }
