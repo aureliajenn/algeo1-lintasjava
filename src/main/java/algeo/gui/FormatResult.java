@@ -62,14 +62,15 @@ public class FormatResult {
      * Metode ini membentuk format fungsi hassil inteprolasi polinomial, dengan:
      * - Suku diurutkan dari pangkat terbesar
      * - Suku dengan koefisien 0 tidak ditampilkan
+     * @param Matrix coeffs berisikan koefisien polynomial dari derajat tertinggi -> terendah
      */
     public static String buildPolynomialString(Matrix coeffs) {
         StringBuilder sb = new StringBuilder("y(x) = ");
         boolean isFirstTerm = true;
 
-        for (int i = coeffs.getRowsCount() - 1; i >= 0; i--) {
+        for (int i = 0 ; i < coeffs.getRowsCount(); i++) {
             double c = coeffs.getElmt(i, 0);
-            if (Math.abs(c) < 1e-9) {
+            if (Math.abs(c) < 1e-6) {
                 continue;
             }
 
@@ -86,10 +87,12 @@ public class FormatResult {
                 sb.append(String.format(Locale.US, "%.3f", absCoeff));
             }
 
-            if (i == 1) {
+            int pangkat = coeffs.getRowsCount() - 1 - i;
+
+            if (pangkat == 1) {
                 sb.append("x");
-            } else if (i > 1) {
-                sb.append("x^").append(i);
+            } else if (pangkat > 1) {
+                sb.append("x^").append(pangkat);
             }
 
             isFirstTerm = false;
