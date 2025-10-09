@@ -8,30 +8,29 @@ import java.util.Scanner;
 
 public class FileHandler {
 
-    public static RegressionInput parseRegresi(String filename) throws FileNotFoundException {
-        Scanner sc = new Scanner(new File(filename));
+    public static RegressionInput parseRegresi(String inputText) {
+        Scanner sc = new Scanner(inputText);
         int rowCount = 0;
         int colCount = -1;
 
+        // Hitung jumlah baris dan kolom
         while (sc.hasNextLine()) {
             String line = sc.nextLine().trim();
             if (line.isEmpty()) continue;
             String[] parts = line.split("\\s+");
-            if (colCount == -1) {
-                colCount = parts.length;
-            }
+            if (colCount == -1) colCount = parts.length;
             rowCount++;
         }
         sc.close();
 
-        int n = rowCount - 1;
-        int k = colCount - 1;
+        int n = rowCount - 1; // baris terakhir = derajat polinom
+        int k = colCount - 1; // kolom terakhir = y
 
         double[][] X = new double[n][k + 1];
         double[][] y = new double[n][1];
-        int derajatPolim = 0; // Inisialisasi
+        int derajatPolim = 0;
 
-        sc = new Scanner(new File(filename));
+        sc = new Scanner(inputText);
         int row = 0;
         while (sc.hasNextLine()) {
             String line = sc.nextLine().trim();
@@ -40,10 +39,10 @@ public class FileHandler {
 
             if (row == rowCount - 1) {
                 derajatPolim = (int) Double.parseDouble(parts[0].replace(',', '.'));
-                break; // Keluar dari loop setelah mendapatkan derajatPolim
+                break;
             }
 
-            X[row][0] = 1.0;
+            X[row][0] = 1.0;  // kolom bias
             for (int j = 0; j < k; j++) {
                 X[row][j + 1] = Double.parseDouble(parts[j].replace(',', '.'));
             }
@@ -55,14 +54,15 @@ public class FileHandler {
         return new RegressionInput(new Matrix(X), new Matrix(y), derajatPolim);
     }
 
+
     private static double parseNumber(String token) {
         token = token.trim().replace(',', '.');
         if (token.contains("/")) {
             String[] frac = token.split("/");
             if (frac.length == 2) {
-                double numerator = Double.parseDouble(frac[0]);
-                double denominator = Double.parseDouble(frac[1]);
-                return numerator / denominator;
+                double pembilang = Double.parseDouble(frac[0]);
+                double penyebut = Double.parseDouble(frac[1]);
+                return pembilang / penyebut;
             } else {
                 throw new NumberFormatException("Format pecahan tidak valid: " + token);
             }
