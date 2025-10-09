@@ -1,5 +1,7 @@
 package algeo.modules;
 
+import java.util.Locale;
+
 public class Interpolation {
     /*
      * Melakukan interpolasi polinomial
@@ -14,7 +16,7 @@ public class Interpolation {
             double xi = points.getElmt(i, 0);
             double yi = points.getElmt(i, 1);
             for (int j = 0; j < length; j++) {
-                augmented.setElmt(i, j, Math.pow(xi,j));
+                augmented.setElmt(i, j, Math.pow(xi,length - 1 - j));
             }
             augmented.setElmt(i, length, yi);
         }
