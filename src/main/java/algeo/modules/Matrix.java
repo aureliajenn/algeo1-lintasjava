@@ -83,7 +83,7 @@ public class Matrix {
     public void displayMatrix() {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                System.out.printf("%.3f", data[i][j]);
+                System.out.printf("%12.3f", data[i][j]);
                 if (j != cols - 1) {
                     System.out.print(" ");
                 }
@@ -207,7 +207,7 @@ public class Matrix {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                formatter.format("%.3f", data[i][j]);
+                formatter.format("%12.3f", data[i][j]);
             }
             if (i < rows - 1) {
                 sb.append("\n");
