@@ -1,5 +1,5 @@
 package algeo.modules;
-import algeo.modules.Matrix;
+
 public class SPLResult {
     public final Matrix solution;
     public final String steps;
