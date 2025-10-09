@@ -207,7 +207,7 @@ public class SPL {
             }
             double pivotVal = m.getElmt(pivotRow, pivotCol);
             if (Math.abs(pivotVal - 1.0) > 1e-9) {
-                steps.append(String.format("-> B%d = B%d / %.4f\n", pivotRow + 1, pivotRow + 1, pivotVal));
+                steps.append(String.format("-> B%d = B%d / %.3f\n", pivotRow + 1, pivotRow + 1, pivotVal));
                 m.scaleRow(pivotRow, 1.0 / pivotVal);
             }
             for (int i = pivotRow + 1; i < rowCount; i++) {
@@ -260,7 +260,7 @@ public class SPL {
             // normalisasi pivot jadi 1
             double pivotVal = m1.getElmt(r, lead);
             if (pivotVal != 0 && pivotVal != 1){
-                steps.append(String.format("-> B%d = B%d / %.4f\n", r + 1, r + 1, pivotVal));
+                steps.append(String.format("-> B%d = B%d / %.3f\n", r + 1, r + 1, pivotVal));
                 m1.scaleRow(r, 1.0/pivotVal);
             }
 
