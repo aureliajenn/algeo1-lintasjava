@@ -110,7 +110,7 @@ public class SPL {
 
         if (coeffMatrix.getRowsCount() > DIMENSION_THRESHOLD) {
             // apply cramer's rule
-            int constMatrixRow = constMatrix.getRowsCount();
+            int constMatrixRow = coeffMatrix.getRowsCount();
             Matrix determinants = new Matrix(constMatrixRow, 1);
             for (int i = 0; i < constMatrixRow; i++) {
                 Matrix replacedCol = coeffMatrix.replaceCol(i, constMatrix);
