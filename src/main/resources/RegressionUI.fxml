@@ -41,7 +41,7 @@
 
                 <Separator/>
 
-                <Label text="Input nilai xₜ₁, xₜ₂, … untuk prediksi:" />
+                <Label text="Input nilai x1, x2, … untuk prediksi:" />
                 <HBox spacing="10.0">
                     <children>
                         <TextField fx:id="predictField" prefWidth="400.0"

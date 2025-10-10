@@ -114,7 +114,7 @@ public class RegressionController {
             double yPred = Regression.predict(coefficients, xValues, regInput.derajatPolim);
 
             outputArea.appendText("\n\nPrediksi untuk input (" + text + "):\n");
-            outputArea.appendText("y = " + String.format("%.4f", yPred));
+            outputArea.appendText("y = " + String.format("%.3f", yPred));
 
         } catch (Exception ex) {
             uiController.showErrorDialog("Error Prediksi", "Gagal menghitung prediksi: " + ex.getMessage());
@@ -129,11 +129,11 @@ public class RegressionController {
         for (int i = 0; i < coeffs.getRowsCount(); i++) {
             double c = coeffs.getElmt(i, 0);
             if (i == 0) {
-                sb.append(String.format("%.4f", c));
+                sb.append(String.format("%.3f", c));
             } else {
                 if (c >= 0) sb.append(" + ");
                 else sb.append(" - ");
-                sb.append(String.format("%.4f", Math.abs(c)));
+                sb.append(String.format("%.3f", Math.abs(c)));
                 if (i < names.length) sb.append(names[i]);
             }
         }
