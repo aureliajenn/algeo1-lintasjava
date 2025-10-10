@@ -103,16 +103,23 @@ public class SPL {
      * @return SPLResult object yang terdiri dari solusi dan langkah-langkah
      */
     public static SPLResult cramer(Matrix coeffMatrix, Matrix constMatrix) {
+        if (coeffMatrix.getRowsCount() != coeffMatrix.getColsCount()) {
+            throw new IllegalArgumentException("Matrix koefisien harus persegi untuk metode Cramer.");
+        }
+        if (constMatrix.getRowsCount() != coeffMatrix.getRowsCount() || constMatrix.getColsCount() != 1) {
+            throw new IllegalArgumentException("Matrix konstanta harus berukuran n×1 dan memiliki jumlah baris yang sama dengan matrix koefisien.");
+        }
+
         double coeffMatDet = Determinant.detReduksiBaris(coeffMatrix).value;
         if (coeffMatDet == 0) {
-            throw new IllegalArgumentException("Det == 0, cramer's method couldn't be applied");
+            throw new IllegalArgumentException("Det == 0, metode cramer tidak bisa diimplementasikan.");
         }
+        int n = coeffMatrix.getColsCount(); // number of variables
+        Matrix determinants = new Matrix(n, 1);
 
         if (coeffMatrix.getRowsCount() > DIMENSION_THRESHOLD) {
             // apply cramer's rule
-            int constMatrixRow = coeffMatrix.getRowsCount();
-            Matrix determinants = new Matrix(constMatrixRow, 1);
-            for (int i = 0; i < constMatrixRow; i++) {
+            for (int i = 0; i < n; i++) {
                 Matrix replacedCol = coeffMatrix.replaceCol(i, constMatrix);
                 determinants.setElmt(i, 0, Determinant.detReduksiBaris(replacedCol).value);
             }
@@ -127,9 +134,7 @@ public class SPL {
 
 
         // apply cramer's rule
-        int constMatrixRow = constMatrix.getRowsCount();
-        Matrix determinants = new Matrix(constMatrixRow, 1);
-        for (int i = 0; i < constMatrixRow; i++) {
+        for (int i = 0; i < n; i++) {
             steps.append("LANGKAH ").append(i + 2).append(": Hitung det(A").append(i + 1).append(").\n");
             Matrix replacedCol = coeffMatrix.replaceCol(i, constMatrix);
             steps.append("Matriks A").append(i + 1).append(" (kolom ").append(i + 1).append(" diganti):\n").append(replacedCol).append("\n");
