@@ -39,14 +39,16 @@ public class SPL {
             return new SPLResult(solution, steps.toString());
         } else {
             steps.append("-> Terdapat variabel bebas. SPL memiliki banyak solusi (parametrik).\n");
-            Matrix rrefMatrix = reducedEchelonFormWithoutSteps(m);
-            Matrix rrefA = rrefMatrix.removeLastCol();
-            double[] rrefB = rrefMatrix.getCol(rrefMatrix.getColsCount() - 1);
 
-            Matrix solution = getParametricSolution(rrefA, rrefB);
+            // Langsung gunakan hasil dari bentuk eselon baris (REF)
+            Matrix refA = m.removeLastCol();
+            double[] refB = m.getCol(m.getColsCount() - 1);
+
+            Matrix solution = getParametricSolution(refA, refB);
             steps.append("Solusi Parametrik (kolom pertama adalah konstanta, kolom berikutnya adalah parameter):\n").append(solution);
             return new SPLResult(solution, steps.toString());
         }
+
     }
 
     /*
@@ -381,57 +383,83 @@ public class SPL {
     public static Matrix getParametricSolution(Matrix a, double[] b) {
         int n = a.getColsCount();
         boolean[] isPivot = new boolean[n];
-        int[] pivotRows = new int[n];
-        java.util.Arrays.fill(pivotRows, -1);
+        int[] pivotRow = new int[n];
+        java.util.Arrays.fill(pivotRow, -1);
 
+        // deteksi pivot (pertama non-zero di tiap baris)
         for (int i = 0; i < a.getRowsCount(); i++) {
             for (int j = 0; j < n; j++) {
-                if (a.getElmt(i, j) == 1) {
+                if (Math.abs(a.getElmt(i, j)) > 1e-9) {
                     isPivot[j] = true;
-                    pivotRows[j] = i;
+                    pivotRow[j] = i;
                     break;
                 }
             }
         }
 
-        java.util.ArrayList<Integer> freeVarIndices = new java.util.ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            if (!isPivot[i]) {
-                freeVarIndices.add(i);
-            }
+        // cari variabel bebas
+        java.util.ArrayList<Integer> freeVars = new java.util.ArrayList<>();
+        for (int j = 0; j < n; j++) {
+            if (!isPivot[j]) freeVars.add(j);
         }
 
-        // Buat matriks hasil
-        int resultCols = 1 + freeVarIndices.size();
-        Matrix result = new Matrix(n, resultCols);
+        int m = freeVars.size();
+        Matrix result = new Matrix(n, 1 + m);
 
-        // Isi kolom pertama (solusi khusus)
-        for (int i = 0; i < n; i++) {
-            if (isPivot[i]) {
-                result.setElmt(i, 0, b[pivotRows[i]]);
-            }
+        // inisialisasi semua 0
+        double[][] param = new double[n][1 + m];
+        for (int i = 0; i < n; i++) java.util.Arrays.fill(param[i], 0.0);
+
+        // set variabel bebas (tiap parameter berdiri sendiri)
+        for (int p = 0; p < m; p++) {
+            int freeIdx = freeVars.get(p);
+            param[freeIdx][p + 1] = 1.0; // x_free = 1 * parameter
         }
 
-        // Isi kolom untuk setiap variabel bebas/parameter
-        for (int k = 0; k < freeVarIndices.size(); k++) {
-            int freeVarIndex = freeVarIndices.get(k);
-            int resultCol = k + 1;
-
-            // Nilai variabel bebas itu sendiri adalah 1 (misal z = 1*t)
-            result.setElmt(freeVarIndex, resultCol, 1.0);
-
-            // Nilai variabel pivot bergantung pada koefisien variabel bebas
-            for (int i = 0; i < n; i++) {
-                if (isPivot[i]) {
-                    int row = pivotRows[i];
-                    // Nilainya adalah negatif dari koefisien variabel bebas di baris pivot tsb
-                    result.setElmt(i, resultCol, -a.getElmt(row, freeVarIndex));
+        // substitusi balik dari bawah ke atas
+        for (int i = a.getRowsCount() - 1; i >= 0; i--) {
+            // cari pivot di baris i
+            int pivotCol = -1;
+            for (int j = 0; j < n; j++) {
+                if (Math.abs(a.getElmt(i, j)) > 1e-9) {
+                    pivotCol = j;
+                    break;
                 }
+            }
+            if (pivotCol == -1) continue; // baris nol
+
+            double rhs = b[i];
+            double[] coeff = new double[n];
+            for (int j = 0; j < n; j++) coeff[j] = a.getElmt(i, j);
+
+            // x_pivot = rhs - sum(coeff[j]*xj)
+            double[] current = new double[1 + m];
+            current[0] = rhs;
+            for (int j = pivotCol + 1; j < n; j++) {
+                if (Math.abs(coeff[j]) > 1e-9) {
+                    for (int k = 0; k < 1 + m; k++) {
+                        current[k] -= coeff[j] * param[j][k];
+                    }
+                }
+            }
+
+            // simpan hasil
+            for (int k = 0; k < 1 + m; k++) {
+                param[pivotCol][k] = current[k];
+            }
+        }
+
+        // salin ke Matrix
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < 1 + m; j++) {
+                result.setElmt(i, j, param[i][j]);
             }
         }
 
         return result;
     }
+
+
 
     /*
      * Fungsi pembantu untuk membuat semua elemen di bawah sebuah pivot menjadi nol dalam satu kolom.
@@ -593,25 +621,47 @@ public class SPL {
      * @return true jika solusi unik, false jika sebaliknya.
      */
     public static boolean checkUniqueSolution(Matrix a, double[] b) {
-        if (checkNoSolution(a, b) || checkManySolution(a, b)) {
-            return false;
-        }
-
-        // The rank of a matrix in row echelon form is its number of non-zero rows.
-        int rank = 0;
+        int rankA = 0;
         for (int i = 0; i < a.getRowsCount(); i++) {
+            boolean nonZero = false;
             for (int j = 0; j < a.getColsCount(); j++) {
-                if (a.getElmt(i, j) != 0) {
-                    rank++;
+                if (Math.abs(a.getElmt(i, j)) > 1e-9) {
+                    nonZero = true;
                     break;
                 }
             }
+            if (nonZero) rankA++;
+        }
+
+        // Hitung rank matriks augmented (A|b)
+        int rankAb = 0;
+        for (int i = 0; i < a.getRowsCount(); i++) {
+            boolean nonZero = false;
+            for (int j = 0; j < a.getColsCount(); j++) {
+                if (Math.abs(a.getElmt(i, j)) > 1e-9) {
+                    nonZero = true;
+                    break;
+                }
+            }
+            // kalau di kolom A semua nol, tapi b[i] != 0, tetap baris tak nol
+            if (!nonZero && Math.abs(b[i]) > 1e-9) {
+                nonZero = true;
+            }
+            if (nonZero) rankAb++;
         }
 
         int n = a.getColsCount();
-        // A unique solution exists if the system is consistent and rank equals the number of variables.
-        return rank == n;
+
+        // Tidak ada solusi jika rank(A|b) > rank(A)
+        if (rankAb > rankA) {
+            return false;
+        }
+
+        // Solusi unik hanya jika rank(A) == jumlah variabel
+        return rankA == n;
     }
+
+
 
     /*
      * Menjalankan proses substitusi balik (backward substitution) untuk menemukan solusi SPL

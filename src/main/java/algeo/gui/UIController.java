@@ -128,7 +128,7 @@ public class UIController {
         File file = fileChooser.showOpenDialog(primaryStage);
         if (file != null) {
             try (Scanner scanner = new Scanner(file)) {
-                // langsung baca isi mentah file, tanpa parse ke Matrix
+                // langsung baca isi mentah file
                 StringBuilder rawContent = new StringBuilder();
                 while (scanner.hasNextLine()) {
                     rawContent.append(scanner.nextLine()).append("\n");
