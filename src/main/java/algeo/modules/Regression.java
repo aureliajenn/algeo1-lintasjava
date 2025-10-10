@@ -72,39 +72,93 @@ public class Regression {
         return arr;
     }
 
-
-    // ============================================================
-    // 🔹 Nama-nama fitur untuk format hasil regresi
-    // ============================================================
-
     public static String[] generateFeatureNames(int k, int degree) {
-        if (degree <= 1) {
-            String[] names = new String[k + 1];
-            names[0] = "";
-            for (int i = 1; i <= k; i++) {
-                names[i] = "x" + i;
-            }
-            return names;
+        int total = 1;
+        for (int d = 1; d <= degree; d++) {
+            total += combination(k + d - 1, d);
         }
 
-        int total = 1 + k + (k * (k + 1)) / 2;
         String[] names = new String[total];
         int idx = 0;
-        names[idx++] = ""; // bias
+        names[idx++] = "";
 
-        // linear terms
-        for (int i = 1; i <= k; i++) {
-            names[idx++] = "x" + i;
-        }
-
-        // quadratic & interaction terms
-        for (int a = 1; a <= k; a++) {
-            for (int b = a; b <= k; b++) {
-                if (a == b) names[idx++] = "x" + a + "^2";
-                else names[idx++] = "x" + a + "x" + b;
-            }
-        }
-
+        int[] powers = new int[k];
+        idx = generateFeatureNamesRecursive(names, k, degree, 0, powers, idx);
         return names;
     }
+
+    private static int generateFeatureNamesRecursive(String[] names, int k, int maxDeg, int pos, int[] powers, int idx) {
+        if (pos == k) {
+            int sum = 0;
+            for (int p : powers) sum += p;
+            if (sum == 0 || sum > maxDeg) return idx;
+
+            // Bangun nama fitur, misal "x1^2x2x3^3"
+            StringBuilder sb = new StringBuilder();
+            for (int j = 0; j < k; j++) {
+                if (powers[j] > 0) {
+                    sb.append("x").append(j + 1);
+                    if (powers[j] > 1) sb.append("^").append(powers[j]);
+                }
+            }
+            names[idx++] = sb.toString();
+            return idx;
+        }
+
+        for (int p = 0; p <= maxDeg; p++) {
+            powers[pos] = p;
+            idx = generateFeatureNamesRecursive(names, k, maxDeg, pos + 1, powers, idx);
+        }
+
+        return idx;
+    }
+
+
+    public static double predict(Matrix coefficients, double[] xValues, int degree) {
+        int k = xValues.length;
+
+        // Buat vektor X_t (fitur tunggal untuk titik yang mau diprediksi)
+        int totalTerms = 1;
+        for (int d = 1; d <= degree; d++) {
+            totalTerms += combination(k + d - 1, d);
+        }
+
+        double[] xt = new double[totalTerms];
+        int idx = 0;
+        xt[idx++] = 1.0; // bias
+
+        int[] powers = new int[k];
+        idx = generateXtRecursive(xValues, xt, k, degree, 0, powers, idx);
+
+        // y_t = X_t * β
+        double y = 0.0;
+        for (int i = 0; i < coefficients.getRowsCount() && i < xt.length; i++) {
+            y += coefficients.getElmt(i, 0) * xt[i];
+        }
+        return y;
+    }
+
+    private static int generateXtRecursive(double[] xValues, double[] xt, int k, int maxDeg, int pos, int[] powers, int idx) {
+        if (pos == k) {
+            int sum = 0;
+            for (int p : powers) sum += p;
+            if (sum == 0 || sum > maxDeg) return idx;
+
+            double val = 1.0;
+            for (int j = 0; j < k; j++) {
+                for (int t = 0; t < powers[j]; t++) {
+                    val *= xValues[j];
+                }
+            }
+            xt[idx++] = val;
+            return idx;
+        }
+
+        for (int p = 0; p <= maxDeg; p++) {
+            powers[pos] = p;
+            idx = generateXtRecursive(xValues, xt, k, maxDeg, pos + 1, powers, idx);
+        }
+        return idx;
+    }
+
 }

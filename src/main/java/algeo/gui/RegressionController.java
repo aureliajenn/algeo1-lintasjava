@@ -5,6 +5,7 @@ import algeo.modules.Regression;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -15,6 +16,7 @@ public class RegressionController {
 
     @FXML private TextArea infoArea;
     @FXML private TextArea outputArea;
+    @FXML private TextField predictField;
 
     private UIController uiController;
     private Stage primaryStage;
@@ -86,6 +88,36 @@ public class RegressionController {
             uiController.saveTextToFile(contentToSave);
         } else if (uiController != null) {
             uiController.showErrorDialog("Simpan Gagal", "Tidak ada hasil untuk disimpan. Silakan proses data terlebih dahulu.");
+        }
+    }
+
+    @FXML
+    void handlePredict(ActionEvent event) {
+        if (coefficients == null) {
+            uiController.showErrorDialog("Error", "Belum ada hasil regresi. Silakan proses data terlebih dahulu.");
+            return;
+        }
+
+        try {
+            String text = predictField.getText().trim();
+            if (text.isEmpty()) {
+                uiController.showErrorDialog("Error", "Input nilai x tidak boleh kosong.");
+                return;
+            }
+
+            String[] parts = text.split("\\s+");
+            double[] xValues = new double[parts.length];
+            for (int i = 0; i < parts.length; i++) {
+                xValues[i] = Double.parseDouble(parts[i].replace(',', '.'));
+            }
+
+            double yPred = Regression.predict(coefficients, xValues, regInput.derajatPolim);
+
+            outputArea.appendText("\n\nPrediksi untuk input (" + text + "):\n");
+            outputArea.appendText("y = " + String.format("%.4f", yPred));
+
+        } catch (Exception ex) {
+            uiController.showErrorDialog("Error Prediksi", "Gagal menghitung prediksi: " + ex.getMessage());
         }
     }
 

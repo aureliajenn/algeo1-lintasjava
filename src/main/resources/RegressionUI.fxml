@@ -4,49 +4,56 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Separator?>
 
-<BorderPane prefHeight="550.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/19"
+<BorderPane prefHeight="600.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/19"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="algeo.gui.RegressionController">
+
     <padding>
-        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0" />
+        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
     </padding>
 
     <top>
-        <Label text="Regresi Polinomial Berganda"
-               BorderPane.alignment="CENTER"
-               style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+        <Label style="-fx-font-size: 20px; -fx-font-weight: bold;"
+               text="Regresi Polinomial Berganda" BorderPane.alignment="CENTER" />
     </top>
 
     <center>
-        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+        <VBox spacing="10.0" BorderPane.alignment="CENTER">
             <children>
-                <Label text="Input Data:" />
-                <TextArea fx:id="infoArea"
-                          editable="true"
-                          wrapText="true"
-                          prefHeight="200.0"
-                          promptText="Masukkan data regresi di sini atau gunakan tombol Load File untuk memuat dari .txt." />
+                <Label text="Info Data &amp; Persamaan:" />
+                <TextArea fx:id="infoArea" editable="true" prefHeight="200.0"
+                          promptText="Silakan masukkan atau muat data (.txt)" />
 
                 <HBox alignment="CENTER" spacing="10.0">
                     <children>
-                        <Button text="Load File (.txt)" onAction="#handleLoadFile" />
-                        <Button text="Proses Regresi" onAction="#handleProcessRegression" />
-                        <Button text="Simpan Hasil (.txt)" onAction="#handleSave" />
-                        <Button text="Kembali" onAction="#handleBack" />
+                        <Button onAction="#handleLoadFile" text="Load File" />
+                        <Button onAction="#handleProcessRegression" text="Proses Regresi" />
+                        <Button onAction="#handleSave" text="Simpan Hasil" />
+                        <Button onAction="#handleBack" text="Kembali" />
                     </children>
                 </HBox>
 
-                <Label text="Hasil Persamaan:" />
-                <TextArea fx:id="outputArea"
-                          editable="false"
-                          wrapText="true"
-                          prefHeight="180.0"
+                <Separator/>
+
+                <Label text="Input nilai xₜ₁, xₜ₂, … untuk prediksi:" />
+                <HBox spacing="10.0">
+                    <children>
+                        <TextField fx:id="predictField" prefWidth="400.0"
+                                   promptText="Masukkan nilai x dipisah spasi (misal: 1000 25 7.5)" />
+                        <Button onAction="#handlePredict" text="Prediksi" />
+                    </children>
+                </HBox>
+
+                <Label text="Output:" />
+                <TextArea fx:id="outputArea" editable="false" prefHeight="200.0"
                           style="-fx-font-family: 'monospaced';"
-                          promptText="Persamaan hasil regresi akan ditampilkan di sini." />
+                          promptText="Hasil regresi dan prediksi akan muncul di sini." />
             </children>
         </VBox>
     </center>
