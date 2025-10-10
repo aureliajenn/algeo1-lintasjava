@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import java.util.Scanner;
 
 import java.io.File;
 import java.io.IOException;
@@ -126,14 +127,19 @@ public class UIController {
         fileChooser.setTitle("Buka File Matriks");
         File file = fileChooser.showOpenDialog(primaryStage);
         if (file != null) {
-            try {
-                Matrix m = FileHandler.readMatrix(file.getAbsolutePath());
-                textArea.setText(m.toString());
+            try (Scanner scanner = new Scanner(file)) {
+                // langsung baca isi mentah file, tanpa parse ke Matrix
+                StringBuilder rawContent = new StringBuilder();
+                while (scanner.hasNextLine()) {
+                    rawContent.append(scanner.nextLine()).append("\n");
+                }
+                textArea.setText(rawContent.toString());
             } catch (Exception ex) {
                 showErrorDialog("Error Membaca File", "Terjadi kesalahan saat membaca file: " + ex.getMessage());
             }
         }
     }
+
 
     public void saveTextToFile(String content) {
         fileChooser.setTitle("Simpan Hasil Ke File");
